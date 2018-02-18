@@ -1,0 +1,27 @@
+{
+  "name": "machinate",
+  "version": "1.0.0",
+  "description": "practical state management",
+  "main": "src/index.js",
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pringshia/machinate.git"
+  },
+  "keywords": [
+    "state",
+    "management",
+    "react",
+    "practical",
+    "easy",
+    "simple"
+  ],
+  "author": "Pratik Ringshia",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pringshia/machinate/issues"
+  },
+  "homepage": "https://github.com/pringshia/machinate#readme"
+}

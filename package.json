@@ -1,6 +1,6 @@
 {
   "name": "machinate",
-  "version": "1.0.6",
+  "version": "1.0.7",
   "description": "practical state management",
   "main": "build/lib.js",
   "scripts": {

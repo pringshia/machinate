@@ -6,11 +6,11 @@ export default function createGraph(schema) {
   // setup dag
   Object.entries(schema)
     .filter(
-      ([slotName, info]) => info.deps && Object.keys(info.deps).length > 0
+      ([domainName, info]) => info.deps && Object.keys(info.deps).length > 0
     )
-    .forEach(([slotName, info]) => {
+    .forEach(([domainName, info]) => {
       Object.entries(info.deps).map(([dep, initialState]) => {
-        dag.add(slotName, dep, initialState);
+        dag.add(domainName, dep, initialState);
       });
     });
 

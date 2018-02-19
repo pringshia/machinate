@@ -24,7 +24,7 @@ _A cutesy reverse [portmanteau](https://en.wikipedia.org/wiki/Portmanteau) of "s
 
 # Use
 
-Every app has states. 1) Define them. 2) Implement them.
+Every app has states. 1) Define them. 2) Implement them. 3) Connect them.
 
 ### **1. define your app's states**
 
@@ -58,6 +58,30 @@ const App = (
 
 ReactDOM.render(<App />, document.body)
 ```
+
+### **3. connecting states**
+
+Each state prop receives two parameters:
+
+1. the data, if any, associated with the state
+2. a collection of helper methods to manipulate the machine
+
+One such helper method is `go()`:
+
+```
+<States for="Auth"
+    LoggedIn={data => <h1>Hi {data.user}</h1>}
+    LoggedOut={(data, { go }) => (
+        <button
+            onClick={ go("Auth.LoggedIn", {user: "bob"}) }
+            value="Login"
+        />
+    )}
+    Unknown={() => null)}
+/>
+```
+
+**Note:** `"Auth.LoggedIn"` is shorthand notation, referring to the `LoggedIn` state of the `Auth` domain.
 
 ---
 

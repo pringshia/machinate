@@ -58,7 +58,10 @@
     }
     render() {
       return (
-        <Machinate scheme={this.scheme} initialState={this.initialState}>
+        <Machinate
+          ref={ref => window.machine = ref.state.machine}  
+          scheme={this.scheme}
+          initialState={this.initialState}>
           <States for="Auth"
             Unknown={(_, machine) => <DetermineAuth {...machine} />}
             Error={errorMsg => <h1>Error: {errorMsg}</h1>}

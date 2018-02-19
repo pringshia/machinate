@@ -8,6 +8,25 @@ const createMachine = function(schema, state) {
   let components = [];
   const dag = new Dag();
 
+  // syntax expansions
+  schema = Object.entries(schema).reduce((obj, [slotName, value]) => {
+    if (Array.isArray(value)) {
+      obj[slotName] = { states: value };
+    } else {
+      obj[slotName] = value;
+    }
+    return obj;
+  }, {});
+
+  state = Object.entries(state).reduce((obj, [slotName, value]) => {
+    if (typeof value === "string") {
+      obj[slotName] = { state: value };
+    } else {
+      obj[slotName] = value;
+    }
+    return obj;
+  }, {});
+
   // setup dag
   const list = Object.entries(schema)
     .filter(
@@ -49,24 +68,6 @@ const createMachine = function(schema, state) {
   const setState = nextState => {
     state = nextState;
     _updateAll();
-  };
-
-  const _pruneState_old = staleState => {
-    const newState = {};
-    Object.entries(staleState).forEach(([slotName, state]) => {
-      const dependencies = schema[slotName].deps || [];
-      if (!dependencies || dependencies.length === 0) {
-        newState[slotName] = state;
-      } else {
-        for (const dep of dependencies) {
-          const [depSlot, depState] = dep.split(".");
-          if (staleState[depSlot] && staleState[depSlot].state === depState) {
-            newState[slotName] = state;
-          }
-        }
-      }
-    });
-    return newState;
   };
 
   const transition = (slotName, stateName, payload) => {

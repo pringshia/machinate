@@ -41,7 +41,7 @@ const scheme = {
 ```
 import Machinate from "machinate";
 
-const initialState =
+const initialState = { Auth: "LoggedOut };
 
 const App = (
     <Machinate
@@ -61,9 +61,34 @@ ReactDOM.render(<App />, document.body)
 
 ---
 
-_ProTip: The fully qualified definition of a scheme is:_
+**💡 Tip!**
+If you forget to implement a state, `machinate` will warn you:
 
 ```
+<States for="Auth"
+    LoggedIn={...}
+    LoggedOut={...}
+    // 'Unknown' prop left out intentionally
+>
+```
+
+`web console:`
+
+```
+Warning: Failed prop type: The prop `Unknown` is marked as required in `Auth[Domain]`, but its value is `undefined`.
+```
+
+---
+
+### 🔀 Syntactic Shortcuts
+
+The following are all equivalent:
+
+```
+const scheme = {
+    Auth: ["LoggedIn", "LoggedOut"]
+}
+
 const scheme = {
     Auth: {
         states: ["LoggedIn", "LoggedOut"],
@@ -72,8 +97,15 @@ const scheme = {
 }
 ```
 
-However, the domain (e.g. in the above case, the `Auth` key) can simply reference an array instead of an object if the domain has no _dependencies_, as shown above.
+```
+const initialState = {
+    Auth: "LoggedOut"
+}
 
-More on _dependencies_ later.
-
-###
+const initialState = {
+    Auth: {
+        state: "LoggedOut",
+        info: null
+    }
+}
+```

@@ -6,7 +6,7 @@
 
 _Practical state management._
 
-_A cutesy reverse [portmeanteau](https://en.wikipedia.org/wiki/Portmanteau) of "state machine"_.
+_A cutesy reverse [portmanteau](https://en.wikipedia.org/wiki/Portmanteau) of "state machine"_.
 
 ---
 

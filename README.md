@@ -1,4 +1,4 @@
-# machinate
+# 🕵️‍ machinate
 
 #### **⚠️ Not ready yet for production use.**
 
@@ -39,7 +39,7 @@ const scheme = {
 ### **2. implement the states**
 
 ```
-import Machinate from "machinate";
+import { Machinate, States } from "machinate";
 
 const initialState = { Auth: "LoggedOut };
 

@@ -1,5 +1,5 @@
 import React from "react";
-import Dag from "dagjs";
+import Dag from "./dag";
 import PropTypes from "prop-types";
 
 import DomainState from "./components/DomainState";

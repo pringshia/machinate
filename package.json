@@ -1,6 +1,6 @@
 {
   "name": "machinate",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "practical state management",
   "main": "build/lib.js",
   "scripts": {
@@ -13,7 +13,14 @@
     "type": "git",
     "url": "git+https://github.com/pringshia/machinate.git"
   },
-  "keywords": ["state", "management", "react", "practical", "easy", "simple"],
+  "keywords": [
+    "state",
+    "management",
+    "react",
+    "practical",
+    "easy",
+    "simple"
+  ],
   "author": "Pratik Ringshia",
   "license": "MIT",
   "bugs": {

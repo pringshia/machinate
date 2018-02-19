@@ -23,5 +23,8 @@
   "bugs": {
     "url": "https://github.com/pringshia/machinate/issues"
   },
-  "homepage": "https://github.com/pringshia/machinate#readme"
+  "homepage": "https://github.com/pringshia/machinate#readme",
+  "dependencies": {
+    "jest": "^22.3.0"
+  }
 }

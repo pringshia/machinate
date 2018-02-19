@@ -1,5 +1,7 @@
 # 🕵️‍ machinate
 
+[![npm](https://img.shields.io/npm/v/machinate.svg)]()
+
 #### **⚠️ Not yet ready for production use.**
 
 ---

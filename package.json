@@ -4,21 +4,15 @@
   "description": "practical state management",
   "main": "src/index.js",
   "scripts": {
-    "build": "NODE_ENV=development webpack",
-    "test": "jest"
+    "start": "NODE_ENV=development webpack --watch",
+    "test": "jest",
+    "build": "NODE_ENV=production webpack"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pringshia/machinate.git"
   },
-  "keywords": [
-    "state",
-    "management",
-    "react",
-    "practical",
-    "easy",
-    "simple"
-  ],
+  "keywords": ["state", "management", "react", "practical", "easy", "simple"],
   "author": "Pratik Ringshia",
   "license": "MIT",
   "bugs": {

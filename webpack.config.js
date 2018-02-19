@@ -1,7 +1,10 @@
 const path = require("path");
+const isProd = process.env.NODE_ENV === "production";
+
 module.exports = {
   entry: "./src/index.js",
-  devtool: "eval-source-map",
+  devtool: isProd ? "cheap-module-source-map" : "source-map",
+
   output: {
     path: path.resolve("build"),
     filename: "lib.js",

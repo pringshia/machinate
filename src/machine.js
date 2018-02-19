@@ -10,29 +10,30 @@ const createMachine = function(schema, state) {
   const depGraph = createGraph(schema);
 
   // syntax expansions
-  schema = Object.entries(schema).reduce((obj, [slotName, value]) => {
+  schema = Object.entries(schema).reduce((obj, [domainName, value]) => {
     if (Array.isArray(value)) {
-      obj[slotName] = { states: value };
+      obj[domainName] = { states: value };
     } else {
-      obj[slotName] = value;
+      obj[domainName] = value;
     }
     return obj;
   }, {});
 
-  state = Object.entries(state).reduce((obj, [slotName, value]) => {
+  state = Object.entries(state).reduce((obj, [domainName, value]) => {
     if (typeof value === "string") {
-      obj[slotName] = { state: value };
+      obj[domainName] = { state: value };
     } else {
-      obj[slotName] = value;
+      obj[domainName] = value;
     }
     return obj;
   }, {});
 
-  const getDomainInfo = slotName => (slotName ? schema[slotName] : schema);
+  const getDomainInfo = domainName =>
+    domainName ? schema[domainName] : schema;
 
-  const getState = slotName => {
+  const getState = domainName => {
     return JSON.parse(
-      JSON.stringify(slotName ? state[slotName] || null : state)
+      JSON.stringify(domainName ? state[domainName] || null : state)
     );
   };
 
@@ -41,9 +42,10 @@ const createMachine = function(schema, state) {
     _updateAll();
   };
 
-  const transition = (slotName, stateName, payload) => {
-    const toName = slotName + "." + stateName;
-    const fromName = state[slotName] && slotName + "." + state[slotName].state;
+  const transition = (domainName, stateName, payload) => {
+    const toName = domainName + "." + stateName;
+    const fromName =
+      state[domainName] && domainName + "." + state[domainName].state;
 
     console.log(
       "going from",
@@ -56,7 +58,7 @@ const createMachine = function(schema, state) {
 
     prevState = getState();
 
-    state[slotName] = {
+    state[domainName] = {
       state: stateName,
       data: payload
     };
@@ -85,13 +87,13 @@ const createMachine = function(schema, state) {
   };
 
   const go = (notation, payload) => _ => {
-    const [slotName, stateName] = notation.split(".");
-    transition(slotName, stateName, payload);
+    const [domainName, stateName] = notation.split(".");
+    transition(domainName, stateName, payload);
   };
 
-  const componentForDomain = slotName => {
+  const componentForDomain = domainName => {
     const generatedPropTypes = Object.values(
-      getDomainInfo(slotName).states || {}
+      getDomainInfo(domainName).states || {}
     ).reduce((obj, stateName) => {
       obj[stateName] = PropTypes.func.isRequired;
       return obj;
@@ -103,13 +105,13 @@ const createMachine = function(schema, state) {
           onAdd: ref => components.push(ref),
           onRemove: ref =>
             (components = components.filter(comp => comp !== ref)),
-          slotName,
+          domainName,
           machine: { transition, go, getState }
         }}
         {...props}
       />
     );
-    Wrapper.displayName = slotName + "[Domain]";
+    Wrapper.displayName = domainName + "[Domain]";
     Wrapper.propTypes = generatedPropTypes;
 
     return Wrapper;

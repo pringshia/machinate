@@ -10,9 +10,7 @@ export default function createGraph(schema) {
     )
     .forEach(([slotName, info]) => {
       Object.entries(info.deps).map(([dep, initialState]) => {
-        // console.log(slotName, dep);
         dag.add(slotName, dep, initialState);
-        // console.log(dag);
       });
     });
 

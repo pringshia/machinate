@@ -4,7 +4,7 @@
 
 ---
 
-**machinate (mack·in·nate)** _verb_:
+**machinate (mack·in·eight)** _verb_:
 
 * _Practical, simple, hassle-free state management._
 

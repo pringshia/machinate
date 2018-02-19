@@ -59,6 +59,27 @@ const App = (
 ReactDOM.render(<App />, document.body)
 ```
 
+---
+
+**💡 Tip!**
+If you forget to implement a state, `machinate` will warn you:
+
+```
+<States for="Auth"
+    LoggedIn={...}
+    LoggedOut={...}
+    // 'Unknown' prop left out intentionally
+>
+```
+
+`web console:`
+
+```
+Warning: Failed prop type: The prop `Unknown` is marked as required in `Auth[Domain]`, but its value is `undefined`.
+```
+
+---
+
 ### **3. connecting states**
 
 Each state prop receives two parameters:
@@ -82,25 +103,6 @@ One such helper method is `go()`:
 ```
 
 **Note:** `"Auth.LoggedIn"` is shorthand notation, referring to the `LoggedIn` state of the `Auth` domain.
-
----
-
-**💡 Tip!**
-If you forget to implement a state, `machinate` will warn you:
-
-```
-<States for="Auth"
-    LoggedIn={...}
-    LoggedOut={...}
-    // 'Unknown' prop left out intentionally
->
-```
-
-`web console:`
-
-```
-Warning: Failed prop type: The prop `Unknown` is marked as required in `Auth[Domain]`, but its value is `undefined`.
-```
 
 ---
 

@@ -1,6 +1,6 @@
 import { createMachine } from "../src/machine";
 
-describe("Machine", () => {
+describe("Machine init", () => {
   describe("scheme", () => {
     test("should be settable", () => {
       const scheme = {
@@ -10,8 +10,6 @@ describe("Machine", () => {
       const machine = createMachine(scheme, initialState);
 
       const definition = machine.getSlotsDef("Auth");
-
-      console.log(definition);
 
       expect(definition.states).toHaveLength(2);
       expect(definition.states).toContain("LoggedOut");
@@ -27,8 +25,6 @@ describe("Machine", () => {
       const machine = createMachine(scheme, initialState);
 
       const definition = machine.getSlotsDef("Auth");
-
-      console.log(definition);
 
       expect(definition.states).toHaveLength(2);
       expect(definition.states).toContain("LoggedOut");

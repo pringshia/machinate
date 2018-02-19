@@ -7,7 +7,7 @@
     "start": "NODE_ENV=development webpack --watch",
     "test": "jest",
     "build": "NODE_ENV=production webpack",
-    "prepublish": "NODE_ENV=production webpack"
+    "prepublishOnly": "NODE_ENV=production webpack"
   },
   "repository": {
     "type": "git",

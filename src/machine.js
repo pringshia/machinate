@@ -119,7 +119,7 @@ const createMachine = function(schema, state) {
 
   return {
     getState,
-    getPrevState: () => prevState,
+    getPrevState: () => prevState, // Ponder: Move to middleware?
     setState,
     transition,
 

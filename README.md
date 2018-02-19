@@ -8,7 +8,7 @@
 
 **machinate (mack·in·eight)** _verb_:
 
-* _Practical, simple, hassle-free state management._
+* _Practical, simple, and hassle-free state management._
 
 * _A cutesy reverse [portmanteau](https://en.wikipedia.org/wiki/Portmanteau) of "state machine"_.
 

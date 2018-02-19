@@ -1,10 +1,14 @@
 # machinate
 
-### **⚠️ Not ready yet for production use.**
+#### **⚠️ Not ready yet for production use.**
+
+---
 
 _Practical state management._
 
 _A cutesty reverse [portmeanteau](https://en.wikipedia.org/wiki/Portmanteau) of "state machine"_.
+
+---
 
 ### 🏁 **Goals**:
 
@@ -37,16 +41,14 @@ const scheme = {
 ```
 import Machinate from "machinate";
 
-const initialState = {
-    Auth: { state: "LoggedOut"}
-}
+const initialState =
 
 const App = (
     <Machinate
         scheme={scheme}
-        initial={initialState}>
+        initialState={initialState}>
 
-        <States for="Auth
+        <States for="Auth"
             LoggedIn={...}
             LoggedOut={...}
             Unknown={...}

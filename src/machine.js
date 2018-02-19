@@ -6,6 +6,7 @@ import DomainState from "./components/DomainState";
 
 const createMachine = function(schema, state) {
   let components = [];
+  let prevState = null;
   const dag = new Dag();
 
   // syntax expansions
@@ -85,6 +86,8 @@ const createMachine = function(schema, state) {
       getDependents(toName).map(n => n.f)
     );
 
+    prevState = getState();
+
     state[slotName] = {
       state: stateName,
       data: payload
@@ -145,6 +148,7 @@ const createMachine = function(schema, state) {
 
   return {
     getState,
+    getPrevState: () => prevState,
     setState,
     transition,
 

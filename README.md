@@ -18,7 +18,7 @@
 
 ### 🏁 **Goals**:
 
-* ✨ Instantly launch your app in any given state.
+* 🚀 Instantly launch your app in any given state.
 * 🤓 Heavy emphasis on developer experience. Your time and sanity are respected.
 * 🚼 Baked in best practices. Guardrails for guidance.
 * 🍞 Dead simple. Plain javascript objects. Minimal boilerplate.

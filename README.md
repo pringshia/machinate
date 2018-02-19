@@ -32,7 +32,7 @@ Every app has states. 1) Define them. 2) Implement them.
 // object where keys are a domain, values are the states of that domain.
 
 const scheme = {
-    Auth: ["LoggedIn", "LoggedOut"]
+    Auth: ["LoggedIn", "LoggedOut", "Unknown"]
 }
 ```
 

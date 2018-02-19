@@ -10,16 +10,16 @@ class DomainState extends Component {
   }
   render() {
     const {
-      slotName,
+      domainName,
       machine: { getState, transition, go }
     } = this.props._config;
-    const stateInfo = getState(slotName);
+    const stateInfo = getState(domainName);
     if (!stateInfo) return null;
 
     const stateName = stateInfo.state;
 
     if (!this.props[stateName])
-      throw new Error(`State '${stateName}' not defined in '${slotName}'`);
+      throw new Error(`State '${stateName}' not defined in '${domainName}'`);
     return this.props[stateName](stateInfo.data, {
       transition: transition,
       go: go

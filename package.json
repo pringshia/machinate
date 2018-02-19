@@ -1,8 +1,8 @@
 {
   "name": "machinate",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "practical state management",
-  "main": "src/index.js",
+  "main": "build/lib.js",
   "scripts": {
     "start": "NODE_ENV=development webpack --watch",
     "test": "jest",
@@ -13,14 +13,7 @@
     "type": "git",
     "url": "git+https://github.com/pringshia/machinate.git"
   },
-  "keywords": [
-    "state",
-    "management",
-    "react",
-    "practical",
-    "easy",
-    "simple"
-  ],
+  "keywords": ["state", "management", "react", "practical", "easy", "simple"],
   "author": "Pratik Ringshia",
   "license": "MIT",
   "bugs": {

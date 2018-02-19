@@ -7,6 +7,9 @@ import DomainState from "./components/DomainState";
 const createMachine = function(schema, state) {
   let components = [];
   let prevState = null;
+
+  // TODO: throw is scheme or initial state is missing
+
   const depGraph = createGraph(schema);
 
   // syntax expansions

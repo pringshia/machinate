@@ -19,8 +19,14 @@
   <script type="text/babel">
   const { Machinate, States } = window.Machinate;
   ReactDOM.render(
-    <Machinate scheme={{}} initialState={{}}>
-      <div>Yo</div>
+    <Machinate
+      scheme={{Auth: { states: ["LoggedIn", "LoggedOut", "Unknown"]} }}
+      initialState={{Auth: {state: "LoggedIn"}}}>
+      <States for="Auth"
+        LoggedIn={() => <p>LoggedIn</p>}
+        LoggedOut={() => <p>LoggedOut</p>}
+        Unknown={() => <p>Unknown</p>}
+      />
     </Machinate>,
     document.getElementById("root")
   );

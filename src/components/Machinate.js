@@ -1,11 +1,12 @@
 import React from "react";
 import PropTypes from "prop-types";
+import { createMachine } from "../machine";
 
 class Machinate extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      machine: this.createMachine(props.scheme, props.initialState)
+      machine: createMachine(props.scheme, props.initialState)
     };
   }
   createMachine(scheme, initialState) {

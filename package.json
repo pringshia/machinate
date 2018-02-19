@@ -1,6 +1,6 @@
 {
   "name": "machinate",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "practical state management",
   "main": "src/index.js",
   "scripts": {

@@ -20,7 +20,7 @@ class DomainState extends Component {
 
     if (!this.props[stateName])
       throw new Error(`State '${stateName}' not defined in '${slotName}'`);
-    return this.props[stateName](stateInfo.details, {
+    return this.props[stateName](stateInfo.data, {
       transition: transition,
       go: go
     });

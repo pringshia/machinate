@@ -135,7 +135,7 @@ const initialState = {
 const initialState = {
     Auth: {
         state: "LoggedOut",
-        info: null
+        data: null
     }
 }
 ```

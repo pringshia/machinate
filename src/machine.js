@@ -87,7 +87,7 @@ const createMachine = function(schema, state) {
 
     state[slotName] = {
       state: stateName,
-      details: payload
+      data: payload
     };
 
     // cmon dude, do it immutably

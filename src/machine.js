@@ -1,13 +1,13 @@
 import React from "react";
-import Dag from "./dag";
 import PropTypes from "prop-types";
+import createGraph from "./graph";
 
 import DomainState from "./components/DomainState";
 
 const createMachine = function(schema, state) {
   let components = [];
   let prevState = null;
-  const dag = new Dag();
+  const depGraph = createGraph(schema);
 
   // syntax expansions
   schema = Object.entries(schema).reduce((obj, [slotName, value]) => {
@@ -28,37 +28,7 @@ const createMachine = function(schema, state) {
     return obj;
   }, {});
 
-  // setup dag
-  const list = Object.entries(schema)
-    .filter(
-      ([slotName, info]) => info.deps && Object.keys(info.deps).length > 0
-    )
-    .forEach(([slotName, info]) => {
-      Object.entries(info.deps).map(([dep, initialState]) => {
-        // console.log(slotName, dep);
-        dag.add(slotName, dep, initialState);
-        // console.log(dag);
-      });
-    });
-
-  // if toState has no edges, return empty array
-  // if toState has edges, return the node, plus it's dependents
-  const getDependents = toState => {
-    const childDependents = dag.edgesTo(toState).edges[toState];
-
-    const flatMap = function(arr, lambda) {
-      return Array.prototype.concat.apply([], arr.map(lambda));
-    };
-
-    return !childDependents
-      ? []
-      : flatMap(childDependents, node => [
-          node,
-          ...getDependents(state[node.f] && node.f + "." + state[node.f].state)
-        ]);
-  };
-
-  const getSlotsDef = slotName => (slotName ? schema[slotName] : schema);
+  const getDomainInfo = slotName => (slotName ? schema[slotName] : schema);
 
   const getState = slotName => {
     return JSON.parse(
@@ -72,8 +42,6 @@ const createMachine = function(schema, state) {
   };
 
   const transition = (slotName, stateName, payload) => {
-    // need to add support for dependencies via perhaps a DAG/dep graph?
-
     const toName = slotName + "." + stateName;
     const fromName = state[slotName] && slotName + "." + state[slotName].state;
 
@@ -82,8 +50,8 @@ const createMachine = function(schema, state) {
       fromName,
       "to",
       toName,
-      getDependents(fromName).map(n => n.f),
-      getDependents(toName).map(n => n.f)
+      depGraph.getDependents(state, fromName).map(n => n.f),
+      depGraph.getDependents(state, toName).map(n => n.f)
     );
 
     prevState = getState();
@@ -94,13 +62,14 @@ const createMachine = function(schema, state) {
     };
 
     // cmon dude, do it immutably
-    getDependents(fromName)
+    depGraph
+      .getDependents(state, fromName)
       .map(n => n.f)
       .forEach(slot => {
         delete state[slot];
       });
 
-    getDependents(toName).forEach(node => {
+    depGraph.getDependents(state, toName).forEach(node => {
       if (node.ts[0].name) {
         transition(node.f, node.ts[0].name);
       }
@@ -111,7 +80,7 @@ const createMachine = function(schema, state) {
 
   const _updateAll = () => {
     // - is there a better, more efficient way to do this?
-    // - is this idiomatic react?
+    // - is this idiomatic react? should I just setState() on sub-components?
     components.forEach(comp => comp.forceUpdate());
   };
 
@@ -122,7 +91,7 @@ const createMachine = function(schema, state) {
 
   const componentForDomain = slotName => {
     const generatedPropTypes = Object.values(
-      getSlotsDef(slotName).states || {}
+      getDomainInfo(slotName).states || {}
     ).reduce((obj, stateName) => {
       obj[stateName] = PropTypes.func.isRequired;
       return obj;
@@ -152,7 +121,7 @@ const createMachine = function(schema, state) {
     setState,
     transition,
 
-    getSlotsDef,
+    getDomainInfo,
     componentForDomain,
     getComponents: () => components
   };

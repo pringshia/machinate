@@ -9,7 +9,7 @@ describe("Machine init", () => {
       const initialState = { Auth: { state: "LoggedOut" } };
       const machine = createMachine(scheme, initialState);
 
-      const definition = machine.getSlotsDef("Auth");
+      const definition = machine.getDomainInfo("Auth");
 
       expect(definition.states).toHaveLength(2);
       expect(definition.states).toContain("LoggedOut");
@@ -24,7 +24,7 @@ describe("Machine init", () => {
       const initialState = { Auth: { state: "LoggedOut" } };
       const machine = createMachine(scheme, initialState);
 
-      const definition = machine.getSlotsDef("Auth");
+      const definition = machine.getDomainInfo("Auth");
 
       expect(definition.states).toHaveLength(2);
       expect(definition.states).toContain("LoggedOut");

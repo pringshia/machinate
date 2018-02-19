@@ -45,19 +45,40 @@ const createMachine = function(schema, state) {
     _updateAll();
   };
 
+  const isTransitionable = toState => {
+    const [toDomainName, toStateName] = toState.split(".");
+
+    const domainInfo = getDomainInfo(toDomainName);
+    if (!domainInfo.deps) return true;
+
+    const deps = Object.keys(domainInfo.deps);
+    return deps.every(dep => {
+      const [domainName, stateName] = dep.split(".");
+      return Boolean(
+        state[domainName] && state[domainName].state === stateName
+      );
+    });
+  };
+
   const transition = (domainName, stateName, payload) => {
     const toName = domainName + "." + stateName;
     const fromName =
       state[domainName] && domainName + "." + state[domainName].state;
 
-    console.log(
-      "going from",
-      fromName,
-      "to",
-      toName,
-      depGraph.getDependents(state, fromName).map(n => n.f),
-      depGraph.getDependents(state, toName).map(n => n.f)
-    );
+    if (!isTransitionable(toName)) {
+      // is throwing an error too harsh?
+      // throw new Error("this state cannot be transitioned to.")
+      return;
+    }
+
+    // console.log(
+    //   "going from",
+    //   fromName,
+    //   "to",
+    //   toName,
+    //   depGraph.getDependents(state, fromName).map(n => n.f),
+    //   depGraph.getDependents(state, toName).map(n => n.f)
+    // );
 
     prevState = getState();
 
@@ -125,6 +146,7 @@ const createMachine = function(schema, state) {
     getPrevState: () => prevState, // Ponder: Move to middleware?
     setState,
     transition,
+    isTransitionable,
 
     getDomainInfo,
     componentForDomain,

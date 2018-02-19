@@ -112,33 +112,12 @@ const createMachine = function(schema, state) {
     components.forEach(comp => comp.forceUpdate());
   };
 
-  // const forState = notation => {
-  //   const Slot = createReactClass({
-  //     getInitialState: function() {
-  //       components.push(this);
-  //       return {};
-  //     },
-  //     componentWillUnmount: function() {
-  //       components = components.filter(comp => comp !== this);
-  //     },
-  //     render: function() {
-  //       const [slotName, stateName] = notation.split(".");
-  //       const stateInfo = getState(slotName);
-  //       if (!stateInfo) return null;
-  //       if (stateInfo.state !== stateName) return null;
-
-  //       return this.props.children(stateInfo.details);
-  //     }
-  //   });
-  //   return Slot;
-  // };
-
   const go = (notation, payload) => _ => {
     const [slotName, stateName] = notation.split(".");
     transition(slotName, stateName, payload);
   };
 
-  const forSlot = slotName => {
+  const componentForDomain = slotName => {
     const generatedPropTypes = Object.values(
       getSlotsDef(slotName).states || {}
     ).reduce((obj, stateName) => {
@@ -166,11 +145,11 @@ const createMachine = function(schema, state) {
 
   return {
     getState,
-    getSlotsDef,
-    forSlot,
-    // forState,
-    transition,
     setState,
+    transition,
+
+    getSlotsDef,
+    componentForDomain,
     getComponents: () => components
   };
 };

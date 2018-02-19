@@ -2,7 +2,7 @@ import React from "react";
 import Dag from "dagjs";
 import PropTypes from "prop-types";
 
-import SlotState from "./components/SlotState";
+import DomainState from "./components/DomainState";
 
 const createMachine = function(schema, state) {
   let components = [];
@@ -146,7 +146,7 @@ const createMachine = function(schema, state) {
     }, {});
 
     const Wrapper = props => (
-      <SlotState
+      <DomainState
         _config={{
           onAdd: ref => components.push(ref),
           onRemove: ref =>

@@ -1,6 +1,6 @@
 import React, { Component } from "react";
 
-class SlotState extends Component {
+class DomainState extends Component {
   constructor(props) {
     super(props);
     this.props._config.onAdd(this);
@@ -27,4 +27,4 @@ class SlotState extends Component {
   }
 }
 
-export default SlotState;
+export default DomainState;

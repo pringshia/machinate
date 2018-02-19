@@ -1,12 +1,16 @@
 # 🕵️‍ machinate
 
-#### **⚠️ Not ready yet for production use.**
+#### **⚠️ Not yet ready for production use.**
 
 ---
 
-_Practical state management._
+**machinate (mack·in·nate)** _verb_:
 
-_A cutesy reverse [portmanteau](https://en.wikipedia.org/wiki/Portmanteau) of "state machine"_.
+* _Practical, simple, hassle-free state management._
+
+* _A cutesy reverse [portmanteau](https://en.wikipedia.org/wiki/Portmanteau) of "state machine"_.
+
+* _To engage in plots and intrigues; scheme. (This is what your app does if you're not managing state properly, we'll help put an end to that.)_
 
 ---
 
@@ -15,7 +19,7 @@ _A cutesy reverse [portmanteau](https://en.wikipedia.org/wiki/Portmanteau) of "s
 * ✨ Instantly launch your app in any given state.
 * 🤓 Heavy emphasis on developer experience. Your time and sanity are respected.
 * 🚼 Baked in best practices. Guardrails for guidance.
-* 🍞 Dead simple. Plain javascript objects.
+* 🍞 Dead simple. Plain javascript objects. Minimal boilerplate.
 * 🛠 High quality tooling.
 
 # Install

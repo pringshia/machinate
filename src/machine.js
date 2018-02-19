@@ -70,8 +70,8 @@ const createMachine = function(schema, state) {
     depGraph
       .getDependents(state, fromName)
       .map(n => n.f)
-      .forEach(slot => {
-        delete state[slot];
+      .forEach(domain => {
+        delete state[domain];
       });
 
     depGraph.getDependents(state, toName).forEach(node => {

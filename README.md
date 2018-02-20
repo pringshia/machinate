@@ -34,7 +34,7 @@ Every app has states. 1) Define them. 2) Implement them. 3) Connect them.
 
 ### **1. define your app's states**
 
-```
+```jsx
 // object where keys are a domain, values are the states of that domain.
 
 const scheme = {
@@ -44,7 +44,7 @@ const scheme = {
 
 ### **2. implement the states**
 
-```
+```jsx
 import { Machinate, States } from "machinate";
 
 const initialState = { Auth: "LoggedOut };
@@ -70,7 +70,7 @@ ReactDOM.render(<App />, document.body)
 **💡 Tip!**
 If you forget to implement a state, `machinate` will warn you:
 
-```
+```jsx
 <States for="Auth"
     LoggedIn={...}
     LoggedOut={...}
@@ -95,7 +95,7 @@ Each state prop receives two parameters:
 
 One such helper method is `go()`:
 
-```
+```jsx
 <States for="Auth"
     LoggedIn={data => <h1>Hi {data.user}</h1>}
     LoggedOut={(data, { go }) => (
@@ -116,7 +116,7 @@ One such helper method is `go()`:
 
 The following are all equivalent:
 
-```
+```jsx
 const scheme = {
     Auth: ["LoggedIn", "LoggedOut"]
 }
@@ -129,7 +129,7 @@ const scheme = {
 }
 ```
 
-```
+```jsx
 const initialState = {
     Auth: "LoggedOut"
 }

@@ -4,11 +4,25 @@ import createGraph from "./graph";
 
 import DomainState from "./components/DomainState";
 
+const isTransitionable = (scheme, currentState, toState) => {
+  const [toDomainName] = toState.split(".");
+
+  const domainInfo = scheme[toDomainName];
+  if (!domainInfo.deps) return true;
+
+  const deps = Object.keys(domainInfo.deps);
+  return deps.every(dep => {
+    const [domainName, stateName] = dep.split(".");
+    return Boolean(
+      currentState[domainName] && currentState[domainName].state === stateName
+    );
+  });
+};
+
 const createMachine = function(schema, state) {
   let components = [];
-  let prevState = null;
 
-  // TODO: throw is scheme or initial state is missing
+  // TODO: throw if scheme or initial state is missing
 
   const depGraph = createGraph(schema);
 
@@ -45,27 +59,12 @@ const createMachine = function(schema, state) {
     _updateAll();
   };
 
-  const isTransitionable = toState => {
-    const [toDomainName, toStateName] = toState.split(".");
-
-    const domainInfo = getDomainInfo(toDomainName);
-    if (!domainInfo.deps) return true;
-
-    const deps = Object.keys(domainInfo.deps);
-    return deps.every(dep => {
-      const [domainName, stateName] = dep.split(".");
-      return Boolean(
-        state[domainName] && state[domainName].state === stateName
-      );
-    });
-  };
-
   const transition = (domainName, stateName, payload) => {
     const toName = domainName + "." + stateName;
     const fromName =
       state[domainName] && domainName + "." + state[domainName].state;
 
-    if (!isTransitionable(toName)) {
+    if (!isTransitionable(schema, state, toName)) {
       // is throwing an error too harsh?
       // throw new Error("this state cannot be transitioned to.")
       return;
@@ -79,8 +78,6 @@ const createMachine = function(schema, state) {
     //   depGraph.getDependents(state, fromName).map(n => n.f),
     //   depGraph.getDependents(state, toName).map(n => n.f)
     // );
-
-    prevState = getState();
 
     state[domainName] = {
       state: stateName,
@@ -143,10 +140,8 @@ const createMachine = function(schema, state) {
 
   return {
     getState,
-    getPrevState: () => prevState, // Ponder: Move to middleware?
     setState,
     transition,
-    isTransitionable,
 
     getDomainInfo,
     componentForDomain,
@@ -154,4 +149,4 @@ const createMachine = function(schema, state) {
   };
 };
 
-export { createMachine };
+export { createMachine, isTransitionable };

@@ -47,7 +47,7 @@ const scheme = {
 ```jsx
 import { Machinate, States } from "machinate";
 
-const initialState = { Auth: "LoggedOut };
+const initialState = { Auth: "LoggedOut" };
 
 const App = (
     <Machinate

@@ -1,11 +1,11 @@
 ### **Demos available for tinkering on CodeSandbox!**
 
-_In the Github web UI, click on a folder above, and then replace the url as such:_
+In the Github web UI, click on a folder above, and then replace the url as such:
 
-From:
+_From:_
 
-### https://**github.com**/pringshia/machinate/tree/master/demos/demo/01-login
+https://**github.com**/pringshia/machinate/tree/master/demos/demo/01-login
 
-To:
+_To:_
 
-### https://**codesandbox.io/s/github**/pringshia/machinate/tree/master/demos/demo/01-login
+https://**codesandbox.io/s/github**/pringshia/machinate/tree/master/demos/demo/01-login

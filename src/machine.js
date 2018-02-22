@@ -19,8 +19,13 @@ const isTransitionable = (scheme, currentState, toState) => {
   });
 };
 
-const createMachine = function(schema, state) {
+const createMachine = function(schema, state, parentMachine) {
   let components = [];
+  const rootMachine = parentMachine
+    ? parentMachine.rootMachine || parentMachine
+    : null;
+
+  const submachines = [];
 
   // TODO: throw if scheme or initial state is missing
 
@@ -138,15 +143,29 @@ const createMachine = function(schema, state) {
     return Wrapper;
   };
 
-  return {
+  const removeSubmachine = machine => {
+    submachines.filter(registeredMachine => registeredMachine !== machine);
+  };
+
+  const createdMachine = {
     getState,
     setState,
     transition,
 
     getDomainInfo,
     componentForDomain,
-    getComponents: () => components
+    getComponents: () => components,
+    rootMachine,
+    registerSubmachine: machine => submachines.push(machine),
+    removeSubmachine,
+    getSubmachines: () => submachines
   };
+
+  if (parentMachine) {
+    rootMachine.registerSubmachine(createdMachine);
+  }
+
+  return createdMachine;
 };
 
 export { createMachine, isTransitionable };

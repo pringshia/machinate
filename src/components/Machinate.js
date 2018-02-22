@@ -3,10 +3,15 @@ import PropTypes from "prop-types";
 import { createMachine } from "../machine";
 
 class Machinate extends React.Component {
-  constructor(props) {
+  constructor(props, context) {
     super(props);
+
     this.state = {
-      machine: createMachine(props.scheme, props.initialState)
+      machine: createMachine(
+        props.scheme,
+        props.initialState,
+        context && context.machine // pass the parent machine if available
+      )
     };
   }
   createMachine(scheme, initialState) {
@@ -29,6 +34,10 @@ Machinate.propTypes = {
 };
 
 Machinate.childContextTypes = {
+  machine: PropTypes.object
+};
+
+Machinate.contextTypes = {
   machine: PropTypes.object
 };
 

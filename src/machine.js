@@ -103,7 +103,13 @@ const createMachine = function(schema, state, parentMachine) {
       }
     });
 
-    _updateAll();
+    // should dependency components be included in this force update as well?
+    const comps = components.filter(
+      comp => comp.props._config.domainName === domainName
+    );
+    comps.forEach(comp => comp.forceUpdate());
+
+    // _updateAll();
   };
 
   const _updateAll = () => {

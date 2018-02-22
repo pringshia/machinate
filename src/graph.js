@@ -9,7 +9,7 @@ export default function createGraph(schema) {
       ([domainName, info]) => info.deps && Object.keys(info.deps).length > 0
     )
     .forEach(([domainName, info]) => {
-      Object.entries(info.deps).map(([dep, initialState]) => {
+      Object.entries(info.deps).forEach(([dep, initialState]) => {
         dag.add(domainName, dep, initialState);
       });
     });

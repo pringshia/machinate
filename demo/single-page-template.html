@@ -22,7 +22,7 @@
   ReactDOM.render(
     <Machinate
       scheme={{Auth: { states: ["LoggedIn", "LoggedOut", "Unknown"]} }}
-      initialState={{Auth: {state: "LoggedIn"}}}>
+      initial={{Auth: {state: "LoggedIn"}}}>
       <States for="Auth"
         LoggedIn={() => <p>LoggedIn</p>}
         LoggedOut={() => <p>LoggedOut</p>}

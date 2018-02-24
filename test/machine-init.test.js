@@ -12,7 +12,7 @@ describe("Machine init", () => {
       const initialState = { Auth: { state: "LoggedOut" } };
 
       const component = shallow(
-        <Machinate scheme={scheme} initialState={initialState} />
+        <Machinate scheme={scheme} initial={initialState} />
       );
 
       expect(

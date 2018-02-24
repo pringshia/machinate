@@ -43,7 +43,7 @@ class Demo extends React.Component {
       <Machinate
         ref={ref => (window.machine = ref.state.machine)}
         scheme={this.scheme}
-        initialState={this.initialState}
+        initial={this.initialState}
       >
         <States
           for="Auth"

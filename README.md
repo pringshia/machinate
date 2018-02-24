@@ -38,8 +38,8 @@ Every app has states. 1) Define them. 2) Implement them. 3) Connect them.
 // object where keys are a domain, values are the states of that domain.
 
 const scheme = {
-    Auth: ["LoggedIn", "LoggedOut", "Unknown"]
-}
+  Auth: ["LoggedIn", "LoggedOut", "Unknown"]
+};
 ```
 
 ### **2. implement the states**
@@ -52,7 +52,7 @@ const initialState = { Auth: "LoggedOut" };
 const App = (
     <Machinate
         scheme={scheme}
-        initialState={initialState}>
+        initial={initialState}>
 
         <States for="Auth"
             LoggedIn={...}
@@ -118,26 +118,26 @@ The following are all equivalent:
 
 ```jsx
 const scheme = {
-    Auth: ["LoggedIn", "LoggedOut"]
-}
+  Auth: ["LoggedIn", "LoggedOut"]
+};
 
 const scheme = {
-    Auth: {
-        states: ["LoggedIn", "LoggedOut"],
-        deps: []
-    }
-}
+  Auth: {
+    states: ["LoggedIn", "LoggedOut"],
+    deps: []
+  }
+};
 ```
 
 ```jsx
 const initialState = {
-    Auth: "LoggedOut"
-}
+  Auth: "LoggedOut"
+};
 
 const initialState = {
-    Auth: {
-        state: "LoggedOut",
-        data: null
-    }
-}
+  Auth: {
+    state: "LoggedOut",
+    data: null
+  }
+};
 ```

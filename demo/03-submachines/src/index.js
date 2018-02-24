@@ -40,7 +40,7 @@ class Demo extends React.Component {
     return (
       <Machinate
         scheme={this.scheme}
-        initialState={this.initialState}
+        initial={this.initialState}
         ref={ref => (window.machine = ref.state.machine)}
         key="main"
       >
@@ -64,7 +64,7 @@ class Demo extends React.Component {
                     {data.map((num, idx) => (
                       <Machinate
                         scheme={this.blockScheme}
-                        initialState={this.initialBlockState(num)}
+                        initial={this.initialBlockState(num)}
                         key={"item-" + idx}
                         id={"item-" + idx}
                       >

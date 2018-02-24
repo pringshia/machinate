@@ -9,7 +9,7 @@ class Machinate extends React.Component {
     this.state = {
       machine: createMachine(
         props.scheme,
-        props.initialState,
+        props.initial,
         context && context.machine // pass the parent machine if available
       )
     };
@@ -30,7 +30,7 @@ class Machinate extends React.Component {
 
 Machinate.propTypes = {
   scheme: PropTypes.object.isRequired,
-  initialState: PropTypes.object.isRequired
+  initial: PropTypes.object.isRequired
 };
 
 Machinate.childContextTypes = {

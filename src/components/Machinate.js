@@ -19,7 +19,7 @@ class Machinate extends React.Component {
     return null;
   }
   render() {
-    return this.props.children;
+    return this.props.children || null;
   }
   getChildContext() {
     return {

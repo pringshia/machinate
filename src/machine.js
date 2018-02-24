@@ -149,8 +149,26 @@ const createMachine = function(schema, state, parentMachine) {
     return Wrapper;
   };
 
-  const removeSubmachine = machine => {
-    submachines.filter(registeredMachine => registeredMachine !== machine);
+  const registerSubmachine = (scope, initialState) => {
+    const prefixedInitialState = Object.entries(initialState).reduce(
+      (obj, [key, value]) => {
+        const prefixedKey = [...scope, key].join("/");
+        obj[prefixedKey] = value;
+        return obj;
+      },
+      {}
+    );
+    state = Object.assign({}, state, prefixedInitialState);
+  };
+
+  const removeSubmachine = scope => {
+    const prefix = scope.join("/") + "/";
+    state = Object.entries(state).reduce((obj, [key, value]) => {
+      if (!key.startsWith(prefix)) {
+        obj[key] = value;
+      }
+      return obj;
+    }, {});
   };
 
   const createdMachine = {
@@ -162,7 +180,7 @@ const createMachine = function(schema, state, parentMachine) {
     componentForDomain,
     getComponents: () => components,
     rootMachine,
-    registerSubmachine: machine => submachines.push(machine),
+    registerSubmachine,
     removeSubmachine,
     getSubmachines: () => submachines
   };

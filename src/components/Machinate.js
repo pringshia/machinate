@@ -3,32 +3,45 @@ import PropTypes from "prop-types";
 import { createMachine } from "../machine";
 
 class Machinate extends React.Component {
-  constructor(props) {
+  constructor(props, context) {
     super(props);
-    this.state = {
-      machine: createMachine(props.scheme, props.initialState)
-    };
+
+    const machine = createMachine(
+      props.scheme,
+      props.initial,
+      context && context.machine // pass the parent machine if available
+    );
+
+    machine.onSetState(() => this.forceUpdate());
+
+    this.state = { machine };
   }
   createMachine(scheme, initialState) {
     // TODO: Implement
     return null;
   }
   render() {
-    return this.props.children;
+    return this.props.children || null;
   }
   getChildContext() {
     return {
-      machine: this.state.machine
+      machine: this.state.machine,
+      scope: []
     };
   }
 }
 
 Machinate.propTypes = {
   scheme: PropTypes.object.isRequired,
-  initialState: PropTypes.object.isRequired
+  initial: PropTypes.object.isRequired
 };
 
 Machinate.childContextTypes = {
+  machine: PropTypes.object,
+  scope: PropTypes.array
+};
+
+Machinate.contextTypes = {
   machine: PropTypes.object
 };
 

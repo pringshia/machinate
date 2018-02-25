@@ -1,6 +1,28 @@
+import React from "react";
 import { createMachine } from "../src/machine";
+import { Machinate, States } from "../src";
+import { shallow, mount, render } from "enzyme";
 
 describe("Machine init", () => {
+  describe("component", () => {
+    test("should provide context with machine", () => {
+      const scheme = {
+        Auth: { states: ["LoggedOut", "LoggedIn"] }
+      };
+      const initialState = { Auth: { state: "LoggedOut" } };
+
+      const component = shallow(
+        <Machinate scheme={scheme} initial={initialState} />
+      );
+
+      expect(
+        component
+          .instance()
+          .getChildContext()
+          .machine.getState()
+      ).toEqual(initialState);
+    });
+  });
   describe("scheme", () => {
     test("should be settable", () => {
       const scheme = {

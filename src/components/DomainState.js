@@ -1,9 +1,11 @@
 import { Component } from "react";
+import PropTypes from "prop-types";
 
 class DomainState extends Component {
   constructor(props) {
     super(props);
     this.props._config.onAdd(this);
+    this.transition = this.props._config.machine.transition;
   }
   componentWillUnmount() {
     this.props._config.onRemove(this);
@@ -13,7 +15,8 @@ class DomainState extends Component {
       domainName,
       machine: { getState, transition, go }
     } = this.props._config;
-    const stateInfo = getState(domainName);
+    const { scope } = this.context;
+    const stateInfo = getState([...scope, domainName].join("/"));
     if (!stateInfo) return null;
 
     const stateName = stateInfo.state;
@@ -26,5 +29,9 @@ class DomainState extends Component {
     });
   }
 }
+
+DomainState.contextTypes = {
+  scope: PropTypes.array
+};
 
 export default DomainState;

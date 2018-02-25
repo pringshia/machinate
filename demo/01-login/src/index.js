@@ -5,7 +5,7 @@ import { Machinate, States } from "machinate";
 const Demo = () => (
   <Machinate
     scheme={{ Auth: { states: ["LoggedIn", "LoggedOut", "Unknown"] } }}
-    initialState={{ Auth: { state: "LoggedIn" } }}
+    initial={{ Auth: { state: "LoggedIn" } }}
   >
     <States
       for="Auth"

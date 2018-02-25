@@ -1,49 +1,36 @@
 import React from "react";
 import PropTypes from "prop-types";
 import createGraph from "./graph";
+import {
+  expandSchemeSyntax,
+  expandStateSyntax,
+  resolveSubdomain,
+  isTransitionable
+} from "./helpers";
 
 import DomainState from "./components/DomainState";
 
-const isTransitionable = (scheme, currentState, toState) => {
-  const [toDomainName] = toState.split(".");
-
-  const domainInfo = scheme[toDomainName];
-  if (!domainInfo.deps) return true;
-
-  const deps = Object.keys(domainInfo.deps);
-  return deps.every(dep => {
-    const [domainName, stateName] = dep.split(".");
-    return Boolean(
-      currentState[domainName] && currentState[domainName].state === stateName
-    );
-  });
-};
-
-const createMachine = function(schema, state) {
+const createMachine = function(schema, state, parentMachine) {
   let components = [];
+  const rootMachine = parentMachine
+    ? parentMachine.rootMachine || parentMachine
+    : null;
+  const submachines = [];
+  let onSetState = () => null;
 
   // TODO: throw if scheme or initial state is missing
+  if (!schema) {
+    throw new Error("Machine must be initialized with a scheme");
+  }
+  if (!state) {
+    throw new Error("Machine must be initialized with an initial state");
+  }
 
   const depGraph = createGraph(schema);
 
   // syntax expansions
-  schema = Object.entries(schema).reduce((obj, [domainName, value]) => {
-    if (Array.isArray(value)) {
-      obj[domainName] = { states: value };
-    } else {
-      obj[domainName] = value;
-    }
-    return obj;
-  }, {});
-
-  state = Object.entries(state).reduce((obj, [domainName, value]) => {
-    if (typeof value === "string") {
-      obj[domainName] = { state: value };
-    } else {
-      obj[domainName] = value;
-    }
-    return obj;
-  }, {});
+  schema = expandSchemeSyntax(schema);
+  state = expandStateSyntax(state);
 
   const getDomainInfo = domainName =>
     domainName ? schema[domainName] : schema;
@@ -56,18 +43,41 @@ const createMachine = function(schema, state) {
 
   const setState = nextState => {
     state = nextState;
-    _updateAll();
+    onSetState();
   };
 
-  const transition = (domainName, stateName, payload) => {
-    const toName = domainName + "." + stateName;
-    const fromName =
-      state[domainName] && domainName + "." + state[domainName].state;
+  const transition = (scope, domainName, stateName, payload) => {
+    // TODO: resolve these names using scope:
+    // console.log(scope, domainName, stateName, payload);
+    const {
+      prefix,
+      prefixArray,
+      fullName: resolvedDomainName
+    } = resolveSubdomain(state, scope, domainName);
+    const schematicToName =
+      domainName.split("/").slice(-1)[0] + "." + stateName;
+    const toName = resolvedDomainName + "." + stateName;
 
-    if (!isTransitionable(schema, state, toName)) {
+    const fromName =
+      state[resolvedDomainName] &&
+      resolvedDomainName + "." + state[resolvedDomainName].state;
+
+    const unresolvedFromName = fromName && fromName.split("/").slice(-1)[0];
+
+    if (
+      !isTransitionable(
+        prefixArray,
+        schema,
+        state,
+        schematicToName + "." + stateName
+      )
+    ) {
       // is throwing an error too harsh?
-      // throw new Error("this state cannot be transitioned to.")
-      return;
+      throw new Error(
+        `${resolvedDomainName +
+          "." +
+          stateName} cannot be transitioned to, likely due to an unfullfilled dependency.`
+      );
     }
 
     // console.log(
@@ -75,30 +85,53 @@ const createMachine = function(schema, state) {
     //   fromName,
     //   "to",
     //   toName,
+    //   "with payload",
+    //   payload,
+    //   "and dependents",
     //   depGraph.getDependents(state, fromName).map(n => n.f),
     //   depGraph.getDependents(state, toName).map(n => n.f)
     // );
 
-    state[domainName] = {
+    state[resolvedDomainName] = {
       state: stateName,
       data: payload
     };
 
-    // cmon dude, do it immutably
-    depGraph
-      .getDependents(state, fromName)
+    const domainsToRemove = depGraph
+      .getDependents(state, unresolvedFromName)
       .map(n => n.f)
-      .forEach(domain => {
-        delete state[domain];
-      });
+      .map(domain => prefix + domain);
 
-    depGraph.getDependents(state, toName).forEach(node => {
+    state = Object.entries(state).reduce((obj, [key, value]) => {
+      if (!domainsToRemove.includes(key)) {
+        obj[key] = value;
+      }
+      return obj;
+    }, {});
+
+    depGraph.getDependents(state, schematicToName).forEach(node => {
       if (node.ts[0].name) {
-        transition(node.f, node.ts[0].name);
+        transition(prefixArray, node.f, node.ts[0].name);
       }
     });
 
-    _updateAll();
+    // should dependency components be included in this force update as well?
+    const comps = components.filter(comp => {
+      const fullName = [
+        ...comp.props._config.scope,
+        comp.props._config.domainName
+      ].join("/");
+      return fullName === resolvedDomainName;
+    });
+    comps.forEach(comp =>
+      console.log(
+        "Updating",
+        [...comp.props._config.scope, comp.props._config.domainName].join("/")
+      )
+    );
+    comps.forEach(comp => comp.forceUpdate());
+
+    // _updateAll();
   };
 
   const _updateAll = () => {
@@ -107,12 +140,15 @@ const createMachine = function(schema, state) {
     components.forEach(comp => comp.forceUpdate());
   };
 
-  const go = (notation, payload) => _ => {
+  const go = (scope, notation, payload) => _ => {
     const [domainName, stateName] = notation.split(".");
-    transition(domainName, stateName, payload);
+    transition(scope, domainName, stateName, payload);
   };
 
-  const componentForDomain = domainName => {
+  const componentForDomain = (scope, domainName) => {
+    // const resolvedDomain = [...scope, domainName].join("/");
+
+    // console.log("name", resolvedDomain, getState()[resolvedDomain]);
     const generatedPropTypes = Object.values(
       getDomainInfo(domainName).states || {}
     ).reduce((obj, stateName) => {
@@ -126,8 +162,13 @@ const createMachine = function(schema, state) {
           onAdd: ref => components.push(ref),
           onRemove: ref =>
             (components = components.filter(comp => comp !== ref)),
+          scope,
           domainName,
-          machine: { transition, go, getState }
+          machine: {
+            transition: (...args) => transition(scope, ...args),
+            go: (...args) => go(scope, ...args),
+            getState
+          }
         }}
         {...props}
       />
@@ -138,15 +179,48 @@ const createMachine = function(schema, state) {
     return Wrapper;
   };
 
-  return {
+  const registerSubmachine = (scope, initialState) => {
+    const prefixedInitialState = Object.entries(
+      expandStateSyntax(initialState)
+    ).reduce((obj, [key, value]) => {
+      const prefixedKey = [...scope, key].join("/");
+      obj[prefixedKey] = value;
+      return obj;
+    }, {});
+    state = Object.assign({}, state, prefixedInitialState);
+  };
+
+  const removeSubmachine = scope => {
+    const prefix = scope.join("/") + "/";
+    state = Object.entries(state).reduce((obj, [key, value]) => {
+      if (!key.startsWith(prefix)) {
+        obj[key] = value;
+      }
+      return obj;
+    }, {});
+  };
+
+  const createdMachine = {
     getState,
     setState,
     transition,
 
+    onSetState: fn => (onSetState = fn),
+
     getDomainInfo,
     componentForDomain,
-    getComponents: () => components
+    getComponents: () => components,
+    rootMachine,
+    registerSubmachine,
+    removeSubmachine,
+    getSubmachines: () => submachines
   };
+
+  if (parentMachine) {
+    rootMachine.registerSubmachine(createdMachine);
+  }
+
+  return createdMachine;
 };
 
 export { createMachine, isTransitionable };

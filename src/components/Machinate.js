@@ -6,13 +6,15 @@ class Machinate extends React.Component {
   constructor(props, context) {
     super(props);
 
-    this.state = {
-      machine: createMachine(
-        props.scheme,
-        props.initial,
-        context && context.machine // pass the parent machine if available
-      )
-    };
+    const machine = createMachine(
+      props.scheme,
+      props.initial,
+      context && context.machine // pass the parent machine if available
+    );
+
+    machine.onSetState(() => this.forceUpdate());
+
+    this.state = { machine };
   }
   createMachine(scheme, initialState) {
     // TODO: Implement

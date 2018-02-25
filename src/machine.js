@@ -30,6 +30,8 @@ const createMachine = function(schema, state, parentMachine) {
 
   const submachines = [];
 
+  let onSetState = () => null;
+
   // TODO: throw if scheme or initial state is missing
 
   const depGraph = createGraph(schema);
@@ -67,7 +69,7 @@ const createMachine = function(schema, state, parentMachine) {
 
   const setState = nextState => {
     state = nextState;
-    _updateAll();
+    onSetState();
   };
 
   const resolveSubdomain = (scope, domainName) => {
@@ -169,11 +171,6 @@ const createMachine = function(schema, state, parentMachine) {
         ...comp.props._config.scope,
         comp.props._config.domainName
       ].join("/");
-      console.log(
-        fullName === resolvedDomainName,
-        fullName,
-        resolvedDomainName
-      );
       return fullName === resolvedDomainName;
     });
     comps.forEach(comp => comp.forceUpdate());
@@ -251,6 +248,8 @@ const createMachine = function(schema, state, parentMachine) {
     getState,
     setState,
     transition,
+
+    onSetState: fn => (onSetState = fn),
 
     getDomainInfo,
     componentForDomain,

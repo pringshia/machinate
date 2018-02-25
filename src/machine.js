@@ -240,8 +240,6 @@ const createMachine = function(schema, state, parentMachine) {
   };
 
   const registerSubmachine = (scope, initialState) => {
-    console.log("adding submachine", scope.join("/"));
-
     const prefixedInitialState = Object.entries(
       expandStateSyntax(initialState)
     ).reduce((obj, [key, value]) => {

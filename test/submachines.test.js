@@ -230,5 +230,24 @@ describe("submachines", () => {
       "Item-1/Item-2/Item-3/Visible": { state: "No" },
       "Item-1/Item-2/Item-3/Item-4/Visible": { state: "No" }
     });
+
+    machine.transition(["Item-1", "Item-2", "Item-3"], "Visible", "Yes");
+
+    expect(machine.getState()).toEqual({
+      Visible: { state: "No" },
+      "Item-1/Visible": { state: "No" },
+      "Item-1/Item-2/Visible": { state: "No" },
+      "Item-1/Item-2/Item-3/Visible": { state: "Yes" },
+      "Item-1/Item-2/Item-3/Item-4/Visible": { state: "No" }
+    });
+    machine.transition([], "/Visible", "Yes");
+
+    expect(machine.getState()).toEqual({
+      Visible: { state: "Yes" },
+      "Item-1/Visible": { state: "No" },
+      "Item-1/Item-2/Visible": { state: "No" },
+      "Item-1/Item-2/Item-3/Visible": { state: "Yes" },
+      "Item-1/Item-2/Item-3/Item-4/Visible": { state: "No" }
+    });
   });
 });

@@ -25,7 +25,8 @@ class Submachine extends Component {
 }
 
 Submachine.contextTypes = {
-  scope: PropTypes.array
+  scope: PropTypes.array,
+  machine: PropTypes.object
 };
 
 Submachine.childContextTypes = {

@@ -23,7 +23,8 @@ class Machinate extends React.Component {
   }
   getChildContext() {
     return {
-      machine: this.state.machine
+      machine: this.state.machine,
+      scope: []
     };
   }
 }
@@ -34,7 +35,8 @@ Machinate.propTypes = {
 };
 
 Machinate.childContextTypes = {
-  machine: PropTypes.object
+  machine: PropTypes.object,
+  scope: PropTypes.array
 };
 
 Machinate.contextTypes = {

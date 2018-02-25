@@ -1,15 +1,20 @@
 import React from "react";
 import { createMachine, isTransitionable } from "../src/machine";
-import { shallow } from "enzyme";
-import { Submachine } from "../src";
+import { mount, shallow } from "enzyme";
+import { Submachine, States } from "../src";
 
 describe("submachines", () => {
+  let machine;
+
   const scheme = {
     Auth: { states: ["LoggedOut", "LoggedIn"] },
     Display: { states: ["Visible", "Hidden"] }
   };
-  const initialState = { Auth: { state: "LoggedOut" } };
-  const machine = createMachine(scheme, initialState);
+
+  beforeEach(() => {
+    const initialState = { Auth: { state: "LoggedOut" } };
+    machine = createMachine(scheme, initialState);
+  });
 
   test("when nested should retain parent ids via context", () => {
     const wrapper1 = shallow(
@@ -23,7 +28,7 @@ describe("submachines", () => {
     });
     expect(machine.getState()).toEqual({
       Auth: { state: "LoggedOut" },
-      "Level1/Display": "Visible"
+      "Level1/Display": { state: "Visible" }
     });
 
     const wrapper2 = shallow(
@@ -37,20 +42,58 @@ describe("submachines", () => {
     });
     expect(machine.getState()).toEqual({
       Auth: { state: "LoggedOut" },
-      "Level1/Display": "Visible",
-      "Level1/Level2/Display": "Hidden"
+      "Level1/Display": { state: "Visible" },
+      "Level1/Level2/Display": { state: "Hidden" }
     });
 
     wrapper2.unmount();
 
     expect(machine.getState()).toEqual({
       Auth: { state: "LoggedOut" },
-      "Level1/Display": "Visible"
+      "Level1/Display": { state: "Visible" }
     });
 
     wrapper1.unmount();
     expect(machine.getState()).toEqual({
       Auth: { state: "LoggedOut" }
+    });
+  });
+  test("should change within that domain when transitioning", () => {
+    const initialState = { Auth: "LoggedOut", Display: "Visible" };
+    machine = createMachine(scheme, initialState);
+
+    const wrapper1 = shallow(
+      <Submachine id="Level1" initial={{ Display: "Visible" }} />,
+      {
+        context: { machine, scope: [] }
+      }
+    );
+    expect(wrapper1.instance().getChildContext()).toEqual({
+      scope: ["Level1"]
+    });
+
+    expect(machine.getState()).toEqual({
+      Auth: { state: "LoggedOut" },
+      Display: { state: "Visible" },
+      "Level1/Display": { state: "Visible" }
+    });
+
+    const DomainState = machine.componentForDomain(["Level1"], "Display");
+    const wrapper2 = shallow(
+      <DomainState
+        Visible={(_, { transition }) => {
+          console.log("yo");
+          transition("Display", "Hidden");
+        }}
+        Hidden={() => null}
+      />
+    );
+    wrapper2.getElement().props._config.machine.transition("Display", "Hidden");
+
+    expect(machine.getState()).toEqual({
+      Auth: { state: "LoggedOut" },
+      Display: { state: "Visible" },
+      "Level1/Display": { state: "Hidden" }
     });
   });
 });

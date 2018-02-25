@@ -5,6 +5,7 @@ import createGraph from "./graph";
 import DomainState from "./components/DomainState";
 
 const isTransitionable = (scheme, currentState, toState) => {
+  // console.log(toState);
   const [toDomainName] = toState.split(".");
 
   const domainInfo = scheme[toDomainName];
@@ -41,14 +42,17 @@ const createMachine = function(schema, state, parentMachine) {
     return obj;
   }, {});
 
-  state = Object.entries(state).reduce((obj, [domainName, value]) => {
-    if (typeof value === "string") {
-      obj[domainName] = { state: value };
-    } else {
-      obj[domainName] = value;
-    }
-    return obj;
-  }, {});
+  const expandStateSyntax = state =>
+    Object.entries(state).reduce((obj, [domainName, value]) => {
+      if (typeof value === "string") {
+        obj[domainName] = { state: value };
+      } else {
+        obj[domainName] = value;
+      }
+      return obj;
+    }, {});
+
+  state = expandStateSyntax(state);
 
   const getDomainInfo = domainName =>
     domainName ? schema[domainName] : schema;
@@ -64,12 +68,43 @@ const createMachine = function(schema, state, parentMachine) {
     _updateAll();
   };
 
-  const transition = (domainName, stateName, payload) => {
+  const resolveSubdomain = (scope, domainName) => {
+    const variations = ["", ...scope]
+      .map((_, idx, array) => array.slice(0, array.length - idx))
+      .map(possibleScopes =>
+        [...possibleScopes.slice(1), domainName].join("/")
+      );
+
+    const possibilities = variations.filter(variation =>
+      state.hasOwnProperty(variation)
+    );
+
+    if (possibilities.length > 1) {
+      console.warn(
+        `Possible ambiguity in transitioning within domain named '${domainName}'.` +
+          ` Machinate will transition to the most specific one, '${
+            possibilities[0]
+          }', but you may have meant to transition to ${possibilities
+            .slice(1)
+            .map(name => `'${name}'`)
+            .join(
+              " or "
+            )}. It is recommended to be more specific to avoid unintended behavior.`
+      );
+    }
+
+    return possibilities[0];
+  };
+
+  const transition = (scope, domainName, stateName, payload) => {
+    // TODO: resolve these names using scope:
+    // console.log(scope, domainName, stateName, payload);
+    // const domainName = resolveSubdomain(scope, domainName);
     const toName = domainName + "." + stateName;
     const fromName =
       state[domainName] && domainName + "." + state[domainName].state;
 
-    if (!isTransitionable(schema, state, toName)) {
+    if (!isTransitionable(schema, state, domainName + "." + stateName)) {
       // is throwing an error too harsh?
       // throw new Error("this state cannot be transitioned to.")
       return;
@@ -99,7 +134,7 @@ const createMachine = function(schema, state, parentMachine) {
 
     depGraph.getDependents(state, toName).forEach(node => {
       if (node.ts[0].name) {
-        transition(node.f, node.ts[0].name);
+        transition(scope, node.f, node.ts[0].name);
       }
     });
 
@@ -118,12 +153,15 @@ const createMachine = function(schema, state, parentMachine) {
     components.forEach(comp => comp.forceUpdate());
   };
 
-  const go = (notation, payload) => _ => {
+  const go = (scope, notation, payload) => _ => {
     const [domainName, stateName] = notation.split(".");
-    transition(domainName, stateName, payload);
+    transition(scope, domainName, stateName, payload);
   };
 
-  const componentForDomain = domainName => {
+  const componentForDomain = (scope, domainName) => {
+    // const resolvedDomain = [...scope, domainName].join("/");
+
+    // console.log("name", resolvedDomain, getState()[resolvedDomain]);
     const generatedPropTypes = Object.values(
       getDomainInfo(domainName).states || {}
     ).reduce((obj, stateName) => {
@@ -138,7 +176,11 @@ const createMachine = function(schema, state, parentMachine) {
           onRemove: ref =>
             (components = components.filter(comp => comp !== ref)),
           domainName,
-          machine: { transition, go, getState }
+          machine: {
+            transition: (...args) => transition(scope, ...args),
+            go: (...args) => go(scope, ...args),
+            getState
+          }
         }}
         {...props}
       />
@@ -150,14 +192,13 @@ const createMachine = function(schema, state, parentMachine) {
   };
 
   const registerSubmachine = (scope, initialState) => {
-    const prefixedInitialState = Object.entries(initialState).reduce(
-      (obj, [key, value]) => {
-        const prefixedKey = [...scope, key].join("/");
-        obj[prefixedKey] = value;
-        return obj;
-      },
-      {}
-    );
+    const prefixedInitialState = Object.entries(
+      expandStateSyntax(initialState)
+    ).reduce((obj, [key, value]) => {
+      const prefixedKey = [...scope, key].join("/");
+      obj[prefixedKey] = value;
+      return obj;
+    }, {});
     state = Object.assign({}, state, prefixedInitialState);
   };
 

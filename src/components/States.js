@@ -1,8 +1,8 @@
 import React from "react";
 import PropTypes from "prop-types";
 
-const States = ({ for: forDomain, ...props }, { machine }) => {
-  const DomainState = machine.componentForDomain(forDomain);
+const States = ({ for: forDomain, ...props }, { machine, scope }) => {
+  const DomainState = machine.componentForDomain(scope, forDomain);
   return <DomainState {...props} />;
 };
 
@@ -11,7 +11,8 @@ States.propTypes = {
 };
 
 States.contextTypes = {
-  machine: PropTypes.object
+  machine: PropTypes.object,
+  scope: PropTypes.array
 };
 
 export default States;

@@ -132,5 +132,10 @@ describe("submachines", () => {
       Auth: { state: "LoggedOut" },
       "App1/Auth": { state: "LoggedOut" }
     });
+
+    machine.removeSubmachine(["App1"]);
+    expect(machine.getState()).toEqual({
+      Auth: { state: "LoggedOut" }
+    });
   });
 });

@@ -15,7 +15,8 @@ class DomainState extends Component {
       domainName,
       machine: { getState, transition, go }
     } = this.props._config;
-    const stateInfo = getState(domainName);
+    const { scope } = this.context;
+    const stateInfo = getState([...scope, domainName].join("/"));
     if (!stateInfo) return null;
 
     const stateName = stateInfo.state;

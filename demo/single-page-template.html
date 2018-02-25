@@ -57,13 +57,9 @@ class Demo extends React.Component {
     };
   }
   render() {
-    return (
-      <Machinate
-        ref={ref => (window.machine = ref.state.machine)}
-        scheme={this.scheme}
-        initial={this.initialState}
-      >
-      <Submachine id="Test" initial={this.initialState}>
+
+    const makeApp = id => (
+      <Submachine id={id} initial={this.initialState}>
         <States
           for="Auth"
           Unknown={(_, {go}) => <DetermineAuth go={go} />}
@@ -136,7 +132,19 @@ class Demo extends React.Component {
             </div>
           )}
         />
-        </Submachine>
+      </Submachine>
+    );
+
+
+
+    return (
+      <Machinate
+        ref={ref => (window.machine = ref.state.machine)}
+        scheme={this.scheme}
+        initial={this.initialState}
+      >
+        {makeApp("Test1")}
+        {makeApp("Test2")}
       </Machinate>
     );
   }

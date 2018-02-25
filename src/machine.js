@@ -54,7 +54,8 @@ const createMachine = function(schema, state, parentMachine) {
       prefixArray,
       fullName: resolvedDomainName
     } = resolveSubdomain(state, scope, domainName);
-    const unresolvedToName = domainName + "." + stateName;
+    const schematicToName =
+      domainName.split("/").slice(-1)[0] + "." + stateName;
     const toName = resolvedDomainName + "." + stateName;
 
     const fromName =
@@ -68,7 +69,7 @@ const createMachine = function(schema, state, parentMachine) {
         prefixArray,
         schema,
         state,
-        domainName + "." + stateName
+        schematicToName + "." + stateName
       )
     ) {
       // is throwing an error too harsh?
@@ -108,7 +109,7 @@ const createMachine = function(schema, state, parentMachine) {
       return obj;
     }, {});
 
-    depGraph.getDependents(state, unresolvedToName).forEach(node => {
+    depGraph.getDependents(state, schematicToName).forEach(node => {
       if (node.ts[0].name) {
         transition(prefixArray, node.f, node.ts[0].name);
       }

@@ -21,13 +21,26 @@ export const expandStateSyntax = state =>
 export const resolveSubdomain = (state, scope, domainName) => {
   const allVariations = ["", ...scope]
     .map((_, idx, array) => array.slice(0, array.length - idx))
-    .map(possibleScopes => ({
-      fullName: [...possibleScopes.slice(1), domainName].join("/"),
-      prefix:
-        possibleScopes.slice(1).length === 0
-          ? ""
-          : [...possibleScopes.slice(1), ""].join("/")
-    }));
+    .map(possibleScopes => {
+      const specifiedDomain = domainName.split("/");
+      const schematicDomain = specifiedDomain.slice(-1);
+      const specifierScope = specifiedDomain.slice(0, -1);
+
+      const rootSpecified =
+        specifierScope.length === 1 && specifierScope[0] === "";
+
+      const possibleScopesWithSpecifier = rootSpecified
+        ? []
+        : [...possibleScopes.slice(1), ...specifierScope].filter(Boolean);
+
+      return {
+        fullName: [...possibleScopesWithSpecifier, schematicDomain].join("/"),
+        prefix:
+          possibleScopesWithSpecifier.length === 0
+            ? ""
+            : [...possibleScopesWithSpecifier, ""].join("/")
+      };
+    });
 
   const variations = allVariations.map(v => v.fullName);
   const prefixVariations = allVariations.map(v => v.prefix);
@@ -38,6 +51,9 @@ export const resolveSubdomain = (state, scope, domainName) => {
 
   const possibilities = allPossibilities.map(p => p.fullName);
   const prefixPossibilities = allPossibilities.map(p => p.prefix);
+
+  // console.log(domainName, "variations:", variations);
+  // console.log(domainName, "possibilities:", prefixPossibilities);
 
   if (possibilities.length === 0)
     return {
@@ -71,7 +87,6 @@ export const isTransitionable = (scope, scheme, currentState, toState) => {
 
   const prefix = scope.length === 0 ? "" : [scope, ""].join("/");
 
-  console.log(scope, toState);
   const domainInfo = scheme[toDomainName];
   if (!domainInfo.deps) return true;
 

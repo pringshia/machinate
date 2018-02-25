@@ -65,3 +65,22 @@ export const resolveSubdomain = (state, scope, domainName) => {
     fullName: possibilities[0]
   };
 };
+
+export const isTransitionable = (scope, scheme, currentState, toState) => {
+  const toDomainName = toState.split(".")[0];
+
+  const prefix = scope.length === 0 ? "" : [scope, ""].join("/");
+
+  console.log(scope, toState);
+  const domainInfo = scheme[toDomainName];
+  if (!domainInfo.deps) return true;
+
+  const deps = Object.keys(domainInfo.deps);
+  return deps.every(dep => {
+    const [domainName, stateName] = dep.split(".");
+    return Boolean(
+      currentState[prefix + domainName] &&
+        currentState[prefix + domainName].state === stateName
+    );
+  });
+};

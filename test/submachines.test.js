@@ -138,4 +138,97 @@ describe("submachines", () => {
       Auth: { state: "LoggedOut" }
     });
   });
+  test("should be able to specify parent states with same name", () => {
+    const scheme = {
+      Visible: ["Yes", "No"]
+    };
+    const initialState = { Visible: "Yes" };
+
+    const machine = createMachine(scheme, initialState);
+    machine.registerSubmachine(["Item-1"], initialState);
+    machine.registerSubmachine(["Item-1", "Item-2"], initialState);
+    machine.registerSubmachine(["Item-1", "Item-2", "Item-3"], initialState);
+    machine.registerSubmachine(
+      ["Item-1", "Item-2", "Item-3", "Item-4"],
+      initialState
+    );
+
+    expect(machine.getState()).toEqual({
+      Visible: { state: "Yes" },
+      "Item-1/Visible": { state: "Yes" },
+      "Item-1/Item-2/Visible": { state: "Yes" },
+      "Item-1/Item-2/Item-3/Visible": { state: "Yes" },
+      "Item-1/Item-2/Item-3/Item-4/Visible": { state: "Yes" }
+    });
+
+    machine.transition(
+      ["Item-1", "Item-2", "Item-3", "Item-4"],
+      "Visible",
+      "No"
+    );
+
+    expect(machine.getState()).toEqual({
+      Visible: { state: "Yes" },
+      "Item-1/Visible": { state: "Yes" },
+      "Item-1/Item-2/Visible": { state: "Yes" },
+      "Item-1/Item-2/Item-3/Visible": { state: "Yes" },
+      "Item-1/Item-2/Item-3/Item-4/Visible": { state: "No" }
+    });
+
+    machine.transition(
+      ["Item-1", "Item-2", "Item-3", "Item-4"],
+      "Item-3/Visible",
+      "No"
+    );
+
+    expect(machine.getState()).toEqual({
+      Visible: { state: "Yes" },
+      "Item-1/Visible": { state: "Yes" },
+      "Item-1/Item-2/Visible": { state: "Yes" },
+      "Item-1/Item-2/Item-3/Visible": { state: "No" },
+      "Item-1/Item-2/Item-3/Item-4/Visible": { state: "No" }
+    });
+
+    machine.transition(
+      ["Item-1", "Item-2", "Item-3", "Item-4"],
+      "Item-2/Item-3/Visible",
+      "No"
+    );
+
+    expect(machine.getState()).toEqual({
+      Visible: { state: "Yes" },
+      "Item-1/Visible": { state: "Yes" },
+      "Item-1/Item-2/Visible": { state: "No" },
+      "Item-1/Item-2/Item-3/Visible": { state: "No" },
+      "Item-1/Item-2/Item-3/Item-4/Visible": { state: "No" }
+    });
+
+    machine.transition(
+      ["Item-1", "Item-2", "Item-3", "Item-4"],
+      "Item-1/Visible",
+      "No"
+    );
+
+    expect(machine.getState()).toEqual({
+      Visible: { state: "Yes" },
+      "Item-1/Visible": { state: "No" },
+      "Item-1/Item-2/Visible": { state: "No" },
+      "Item-1/Item-2/Item-3/Visible": { state: "No" },
+      "Item-1/Item-2/Item-3/Item-4/Visible": { state: "No" }
+    });
+
+    machine.transition(
+      ["Item-1", "Item-2", "Item-3", "Item-4"],
+      "/Visible",
+      "No"
+    );
+
+    expect(machine.getState()).toEqual({
+      Visible: { state: "No" },
+      "Item-1/Visible": { state: "No" },
+      "Item-1/Item-2/Visible": { state: "No" },
+      "Item-1/Item-2/Item-3/Visible": { state: "No" },
+      "Item-1/Item-2/Item-3/Item-4/Visible": { state: "No" }
+    });
+  });
 });

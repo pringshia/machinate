@@ -4,28 +4,11 @@ import createGraph from "./graph";
 import {
   expandSchemeSyntax,
   expandStateSyntax,
-  resolveSubdomain
+  resolveSubdomain,
+  isTransitionable
 } from "./helpers";
 
 import DomainState from "./components/DomainState";
-
-const isTransitionable = (scope, scheme, currentState, toState) => {
-  const toDomainName = toState.split(".")[0];
-
-  const prefix = scope.length === 0 ? "" : [scope, ""].join("/");
-
-  const domainInfo = scheme[toDomainName];
-  if (!domainInfo.deps) return true;
-
-  const deps = Object.keys(domainInfo.deps);
-  return deps.every(dep => {
-    const [domainName, stateName] = dep.split(".");
-    return Boolean(
-      currentState[prefix + domainName] &&
-        currentState[prefix + domainName].state === stateName
-    );
-  });
-};
 
 const createMachine = function(schema, state, parentMachine) {
   let components = [];
@@ -207,7 +190,6 @@ const createMachine = function(schema, state, parentMachine) {
   };
 
   const removeSubmachine = scope => {
-    console.log("removing submachine", scope.join("/"));
     const prefix = scope.join("/") + "/";
     state = Object.entries(state).reduce((obj, [key, value]) => {
       if (!key.startsWith(prefix)) {

@@ -92,44 +92,74 @@ const createMachine = function(schema, state, parentMachine) {
     //   depGraph.getDependents(state, toName).map(n => n.f)
     // );
 
+    const oldState = state[resolvedDomainName];
     state[resolvedDomainName] = {
       state: stateName,
       data: payload
     };
 
-    const domainsToRemove = depGraph
+    const dependentDomainsToAdd = depGraph
+      .getDependents(state, schematicToName)
+      .map(node => ({ domain: node.f, state: node.ts[0] && node.ts[0].name }));
+
+    const dependentDomainsToRemove = depGraph
       .getDependents(state, unresolvedFromName)
-      .map(n => n.f)
+      .map(n => n.f);
+
+    const optimizedDomainsToRemove = dependentDomainsToRemove
+      .filter(domain => {
+        const overlap = dependentDomainsToAdd.find(x => x.domain === domain);
+        if (
+          overlap &&
+          state[prefix + domain] &&
+          overlap.state === state[prefix + domain].state
+        ) {
+          return false;
+        }
+        return true;
+      })
       .map(domain => prefix + domain);
 
+    const optimizedDomainsToAdd = dependentDomainsToAdd.filter(toAdd => {
+      const overlap = dependentDomainsToRemove.find(
+        domain => domain === toAdd.domain
+      );
+      if (overlap && overlap === toAdd.domain) {
+        return false;
+      }
+      return true;
+    });
+    // .map(toAdd => prefix + toAdd.domain);
+
+    optimizedDomainsToAdd.forEach(toAdd => {
+      console.log("triggering " + toAdd.domain + "." + toAdd.state);
+      transition(prefixArray, toAdd.domain, toAdd.state);
+    });
+
     state = Object.entries(state).reduce((obj, [key, value]) => {
-      if (!domainsToRemove.includes(key)) {
+      if (!optimizedDomainsToRemove.includes(key)) {
         obj[key] = value;
       }
       return obj;
     }, {});
 
-    depGraph.getDependents(state, schematicToName).forEach(node => {
-      if (node.ts[0].name) {
-        transition(prefixArray, node.f, node.ts[0].name);
-      }
-    });
-
     // should dependency components be included in this force update as well?
-    const comps = components.filter(comp => {
-      const fullName = [
-        ...comp.props._config.scope,
-        comp.props._config.domainName
-      ].join("/");
-      return fullName === resolvedDomainName;
-    });
-    comps.forEach(comp =>
-      console.log(
-        "Updating",
-        [...comp.props._config.scope, comp.props._config.domainName].join("/")
-      )
-    );
-    comps.forEach(comp => comp.forceUpdate());
+    if (schematicToName !== unresolvedFromName || payload !== oldState.data) {
+      const comps = components.filter(comp => {
+        const fullName = [
+          ...comp.props._config.scope,
+          comp.props._config.domainName
+        ].join("/");
+        return fullName === resolvedDomainName;
+      });
+      // comps.forEach(comp =>
+      //   console.log(
+      //     "Updating",
+      //     [...comp.props._config.scope, comp.props._config.domainName].join("/")
+      //   )
+      // );
+      comps.forEach(comp => comp.forceUpdate());
+    }
 
     // _updateAll();
   };
@@ -187,7 +217,7 @@ const createMachine = function(schema, state, parentMachine) {
       obj[prefixedKey] = value;
       return obj;
     }, {});
-    state = Object.assign({}, state, prefixedInitialState);
+    state = Object.assign({}, prefixedInitialState, state);
   };
 
   const removeSubmachine = scope => {

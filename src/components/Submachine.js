@@ -11,9 +11,12 @@ class Submachine extends Component {
   constructor(props, context) {
     super(props, context);
 
-    context.machine.registerSubmachine(
+    this.register(context.machine);
+  }
+  register(machine) {
+    machine.registerSubmachine(
       this.getChildContext().scope,
-      props.initial
+      this.props.initial
     );
   }
   componentDidMount() {
@@ -26,10 +29,7 @@ class Submachine extends Component {
     // be added. Also, only leaving this in componentDidMount and not the constructor
     // causes extremely erratic behavior, where dependent children may depend on
     // the parent submachine's state.
-    this.context.machine.registerSubmachine(
-      this.getChildContext().scope,
-      this.props.initial
-    );
+    this.register(this.context.machine);
   }
   componentWillUnmount() {
     this.context.machine.removeSubmachine(this.getChildContext().scope);

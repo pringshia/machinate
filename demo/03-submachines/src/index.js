@@ -85,33 +85,38 @@ class Demo extends React.Component {
                                   </button>
                                 </div>
                               )}
-                              Edit={(editedNum, { go }) => (
-                                <div className="block edit">
-                                  <div>
-                                    <input
-                                      key={idx}
-                                      value={editedNum}
-                                      onChange={e =>
-                                        go("Mode.Edit", e.target.value)()
-                                      }
-                                    />
-                                  </div>
-                                  <button
-                                    onClick={e => {
-                                      const newData = [...data];
-                                      newData[idx] = editedNum;
+                              Edit={(editedNum, { go }) => {
+                                return (
+                                  <div className="block edit">
+                                    <div>
+                                      <input
+                                        key={idx}
+                                        value={editedNum}
+                                        onChange={e =>
+                                          go("Mode.Edit", e.target.value)()
+                                        }
+                                      />
+                                    </div>
+                                    <button
+                                      onClick={e => {
+                                        const newData = [...data];
+                                        newData[idx] = editedNum;
 
-                                      go("Items.List", newData)();
-                                      go("Block.Element", editedNum)();
-                                    }}
-                                  >
-                                    Save
-                                  </button>
-                                  <button onClick={e => go("Mode.View", num)()}>
-                                    Cancel
-                                  </button>
-                                </div>
-                              )}
+                                        go("Items.List", newData)();
+                                        go("Block.Element", editedNum)();
+                                        go("Mode.View")();
+                                      }}
+                                    >
+                                      Save
+                                    </button>
+                                    <button
+                                      onClick={e => go("Mode.View", num)()}
+                                    >
+                                      Cancel
+                                    </button>
+                                  </div>
+                                );
+                              }}
                             />
                           )}
                         />

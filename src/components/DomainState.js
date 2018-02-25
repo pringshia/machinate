@@ -8,6 +8,11 @@ class DomainState extends Component {
     this.transition = this.props._config.machine.transition;
   }
   componentWillUnmount() {
+    // console.log(
+    //   "Actual state unmounting",
+    //   this.context.scope.join("/"),
+    //   this.props._config.domainName
+    // );
     this.props._config.onRemove(this);
   }
   render() {

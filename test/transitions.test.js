@@ -51,7 +51,7 @@ describe("Transitioning", () => {
       expect(machine.getState()).not.toHaveProperty("ItemWizard");
     });
     test("should trigger new dependent states", () => {
-      const initialState = { Auth: "LoggedIn" };
+      const initialState = { Auth: "LoggedOut" };
 
       const machine = createMachine(scheme, initialState);
 
@@ -60,7 +60,7 @@ describe("Transitioning", () => {
       expect(machine.getState()).toHaveProperty("Display");
     });
     test("should destroy old dependent states", () => {
-      const initialState = { Auth: "LoggedIn" };
+      const initialState = { Auth: "LoggedOut" };
 
       const machine = createMachine(scheme, initialState);
 

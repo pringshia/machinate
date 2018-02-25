@@ -1,5 +1,11 @@
 sudo: false
 language: node_js
 node_js: 8
+cache:
+  directories:
+    - ~/.npm
+    - node_modules
 install: npm install
-script: npm test
+script:
+  - npm test
+  - $(npm bin)/cypress run --record

@@ -1,6 +1,6 @@
 import React from "react";
 import { render } from "react-dom";
-import { Machinate, States } from "machinate";
+import { Machinate, States, Submachine } from "machinate";
 
 class Demo extends React.Component {
   constructor(props) {
@@ -8,27 +8,28 @@ class Demo extends React.Component {
 
     this.scheme = {
       Items: { states: ["List"] },
-      Visibility: { states: ["Show", "Hide"], deps: { "Items.List": "Show" } }
+      Visibility: { states: ["Show", "Hide"], deps: { "Items.List": "Show" } },
+      Block: { states: ["Element"] },
+      BlockVisibility: {
+        states: ["Show", "Hide"],
+        deps: { "Block.Element": "Show" }
+      },
+      Mode: {
+        states: ["View", "Edit"],
+        deps: { "BlockVisibility.Show": "View" }
+      }
     };
     this.initialState = {
       Items: { state: "List", data: ["Block", 2] },
       Visibility: "Show"
     };
 
-    this.blockScheme = {
-      Block: { states: ["Element"] },
-      Visibility: {
-        states: ["Show", "Hide"],
-        deps: { "Block.Element": "Show" }
-      },
-      Mode: { states: ["View", "Edit"], deps: { "Visibility.Show": "View" } }
-    };
     this.initialBlockState = data => ({
       Block: {
         state: "Element",
         data
       },
-      Visibility: {
+      BlockVisibility: {
         state: "Show"
       },
       Mode: {
@@ -62,11 +63,10 @@ class Demo extends React.Component {
                     </button>
 
                     {data.map((num, idx) => (
-                      <Machinate
-                        scheme={this.blockScheme}
-                        initial={this.initialBlockState(num)}
+                      <Submachine
                         key={"item-" + idx}
                         id={"item-" + idx}
+                        initial={this.initialBlockState(num)}
                       >
                         <States
                           for="Block"
@@ -97,9 +97,13 @@ class Demo extends React.Component {
                                     />
                                   </div>
                                   <button
-                                    onClick={e =>
-                                      go("Block.Element", editedNum)()
-                                    }
+                                    onClick={e => {
+                                      const newData = [...data];
+                                      newData[idx] = editedNum;
+
+                                      go("Items.List", newData)();
+                                      go("Block.Element", editedNum)();
+                                    }}
                                   >
                                     Save
                                   </button>
@@ -111,7 +115,7 @@ class Demo extends React.Component {
                             />
                           )}
                         />
-                      </Machinate>
+                      </Submachine>
                     ))}
                   </React.Fragment>
                 );

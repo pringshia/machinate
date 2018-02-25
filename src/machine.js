@@ -128,7 +128,14 @@ const createMachine = function(schema, state, parentMachine) {
 
     const unresolvedFromName = fromName && fromName.split("/").slice(-1)[0];
 
-    if (!isTransitionable(scope, schema, state, domainName + "." + stateName)) {
+    if (
+      !isTransitionable(
+        prefix.split("/").filter(Boolean),
+        schema,
+        state,
+        domainName + "." + stateName
+      )
+    ) {
       // is throwing an error too harsh?
       throw new Error(
         `${resolvedDomainName +
@@ -142,6 +149,9 @@ const createMachine = function(schema, state, parentMachine) {
     //   fromName,
     //   "to",
     //   toName,
+    //   "with payload",
+    //   payload,
+    //   "and dependents",
     //   depGraph.getDependents(state, fromName).map(n => n.f),
     //   depGraph.getDependents(state, toName).map(n => n.f)
     // );
@@ -161,7 +171,7 @@ const createMachine = function(schema, state, parentMachine) {
 
     depGraph.getDependents(state, unresolvedToName).forEach(node => {
       if (node.ts[0].name) {
-        transition(scope, node.f, node.ts[0].name);
+        transition(prefix.split("/").filter(Boolean), node.f, node.ts[0].name);
       }
     });
 
@@ -173,6 +183,12 @@ const createMachine = function(schema, state, parentMachine) {
       ].join("/");
       return fullName === resolvedDomainName;
     });
+    comps.forEach(comp =>
+      console.log(
+        "Updating",
+        [...comp.props._config.scope, comp.props._config.domainName].join("/")
+      )
+    );
     comps.forEach(comp => comp.forceUpdate());
 
     // _updateAll();
@@ -224,6 +240,8 @@ const createMachine = function(schema, state, parentMachine) {
   };
 
   const registerSubmachine = (scope, initialState) => {
+    console.log("adding submachine", scope.join("/"));
+
     const prefixedInitialState = Object.entries(
       expandStateSyntax(initialState)
     ).reduce((obj, [key, value]) => {
@@ -235,6 +253,7 @@ const createMachine = function(schema, state, parentMachine) {
   };
 
   const removeSubmachine = scope => {
+    console.log("removing submachine", scope.join("/"));
     const prefix = scope.join("/") + "/";
     state = Object.entries(state).reduce((obj, [key, value]) => {
       if (!key.startsWith(prefix)) {

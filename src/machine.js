@@ -113,13 +113,17 @@ const createMachine = function(schema, state, parentMachine) {
       data: payload
     };
 
-    // cmon dude, do it immutably
-    depGraph
+    const domainsToRemove = depGraph
       .getDependents(state, unresolvedFromName)
       .map(n => n.f)
-      .forEach(domain => {
-        delete state[prefix + domain];
-      });
+      .map(domain => prefix + domain);
+
+    state = Object.entries(state).reduce((obj, [key, value]) => {
+      if (!domainsToRemove.includes(key)) {
+        obj[key] = value;
+      }
+      return obj;
+    }, {});
 
     depGraph.getDependents(state, unresolvedToName).forEach(node => {
       if (node.ts[0].name) {

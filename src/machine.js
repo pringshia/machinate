@@ -93,7 +93,6 @@ const createMachine = function(schema, state, parentMachine) {
     // );
 
     const oldState = state[resolvedDomainName];
-
     state[resolvedDomainName] = {
       state: stateName,
       data: payload
@@ -121,13 +120,6 @@ const createMachine = function(schema, state, parentMachine) {
       })
       .map(domain => prefix + domain);
 
-    state = Object.entries(state).reduce((obj, [key, value]) => {
-      if (!optimizedDomainsToRemove.includes(key)) {
-        obj[key] = value;
-      }
-      return obj;
-    }, {});
-
     const optimizedDomainsToAdd = dependentDomainsToAdd.filter(toAdd => {
       const overlap = dependentDomainsToRemove.find(
         domain => domain === toAdd.domain
@@ -140,8 +132,16 @@ const createMachine = function(schema, state, parentMachine) {
     // .map(toAdd => prefix + toAdd.domain);
 
     optimizedDomainsToAdd.forEach(toAdd => {
+      console.log("triggering " + toAdd.domain + "." + toAdd.state);
       transition(prefixArray, toAdd.domain, toAdd.state);
     });
+
+    state = Object.entries(state).reduce((obj, [key, value]) => {
+      if (!optimizedDomainsToRemove.includes(key)) {
+        obj[key] = value;
+      }
+      return obj;
+    }, {});
 
     // should dependency components be included in this force update as well?
     if (schematicToName !== unresolvedFromName || payload !== oldState.data) {
@@ -217,7 +217,7 @@ const createMachine = function(schema, state, parentMachine) {
       obj[prefixedKey] = value;
       return obj;
     }, {});
-    state = Object.assign({}, state, prefixedInitialState);
+    state = Object.assign({}, prefixedInitialState, state);
   };
 
   const removeSubmachine = scope => {

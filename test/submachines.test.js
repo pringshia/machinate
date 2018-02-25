@@ -96,4 +96,41 @@ describe("submachines", () => {
       "Level1/Display": { state: "Hidden" }
     });
   });
+  test("should support dependencies", () => {
+    const scheme = {
+      Auth: { states: ["LoggedIn", "LoggedOut", "Unknown", "Error"] },
+      Display: {
+        states: ["Dashboard", "Settings", "CreateItem"],
+        deps: { "Auth.LoggedIn": "Dashboard" }
+      },
+      ItemWizard: {
+        states: ["Step1", "Step2", "Step3"],
+        deps: { "Display.CreateItem": "Step1" }
+      }
+    };
+
+    const initialState = { Auth: "LoggedOut" };
+    const machine = createMachine(scheme, initialState);
+
+    machine.registerSubmachine(["App1"], initialState);
+
+    expect(machine.getState()).toEqual({
+      Auth: { state: "LoggedOut" },
+      "App1/Auth": { state: "LoggedOut" }
+    });
+
+    machine.transition(["App1"], "Auth", "LoggedIn", "bobsmith");
+
+    expect(machine.getState()).toEqual({
+      Auth: { state: "LoggedOut" },
+      "App1/Auth": { state: "LoggedIn", data: "bobsmith" },
+      "App1/Display": { state: "Dashboard" }
+    });
+
+    machine.transition(["App1"], "Auth", "LoggedOut");
+    expect(machine.getState()).toEqual({
+      Auth: { state: "LoggedOut" },
+      "App1/Auth": { state: "LoggedOut" }
+    });
+  });
 });

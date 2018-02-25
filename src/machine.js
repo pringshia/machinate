@@ -4,12 +4,10 @@ import createGraph from "./graph";
 
 import DomainState from "./components/DomainState";
 
-const isTransitionable = (scheme, currentState, toState) => {
-  // console.log(toState);
-  const toDomainName = toState
-    .split(".")[0]
-    .split("/")
-    .slice(-1)[0];
+const isTransitionable = (scope, scheme, currentState, toState) => {
+  const toDomainName = toState.split(".")[0];
+
+  const prefix = scope.length === 0 ? "" : [scope, ""].join("/");
 
   const domainInfo = scheme[toDomainName];
   if (!domainInfo.deps) return true;
@@ -18,7 +16,8 @@ const isTransitionable = (scheme, currentState, toState) => {
   return deps.every(dep => {
     const [domainName, stateName] = dep.split(".");
     return Boolean(
-      currentState[domainName] && currentState[domainName].state === stateName
+      currentState[prefix + domainName] &&
+        currentState[prefix + domainName].state === stateName
     );
   });
 };
@@ -118,17 +117,22 @@ const createMachine = function(schema, state, parentMachine) {
       scope,
       domainName
     );
+    const unresolvedToName = domainName + "." + stateName;
     const toName = resolvedDomainName + "." + stateName;
+
     const fromName =
       state[resolvedDomainName] &&
       resolvedDomainName + "." + state[resolvedDomainName].state;
 
-    if (
-      !isTransitionable(schema, state, resolvedDomainName + "." + stateName)
-    ) {
+    const unresolvedFromName = fromName && fromName.split("/").slice(-1)[0];
+
+    if (!isTransitionable(scope, schema, state, domainName + "." + stateName)) {
       // is throwing an error too harsh?
-      // throw new Error("this state cannot be transitioned to.")
-      return;
+      throw new Error(
+        `${resolvedDomainName +
+          "." +
+          stateName} cannot be transitioned to, likely due to an unfullfilled dependency.`
+      );
     }
 
     // console.log(
@@ -147,13 +151,13 @@ const createMachine = function(schema, state, parentMachine) {
 
     // cmon dude, do it immutably
     depGraph
-      .getDependents(state, fromName)
+      .getDependents(state, unresolvedFromName)
       .map(n => n.f)
       .forEach(domain => {
         delete state[prefix + domain];
       });
 
-    depGraph.getDependents(state, toName).forEach(node => {
+    depGraph.getDependents(state, unresolvedToName).forEach(node => {
       if (node.ts[0].name) {
         transition(scope, node.f, node.ts[0].name);
       }

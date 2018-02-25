@@ -18,35 +18,35 @@ describe("Transitioning", () => {
 
       const machine = createMachine(scheme, initialState);
       expect(
-        isTransitionable(scheme, machine.getState(), "ItemWizard.Step1")
+        isTransitionable([], scheme, machine.getState(), "ItemWizard.Step1")
       ).toBeFalsy();
       machine.transition([], "Auth", "LoggedIn");
       machine.transition([], "Display", "CreateItem");
       expect(
-        isTransitionable(scheme, machine.getState(), "ItemWizard.Step1")
+        isTransitionable([], scheme, machine.getState(), "ItemWizard.Step1")
       ).toBeTruthy();
       machine.transition([], "Display", "Dashboard");
       expect(
-        isTransitionable(scheme, machine.getState(), "ItemWizard.Step1")
+        isTransitionable([], scheme, machine.getState(), "ItemWizard.Step1")
       ).toBeFalsy();
       machine.transition([], "Display", "CreateItem");
       expect(
-        isTransitionable(scheme, machine.getState(), "ItemWizard.Step1")
+        isTransitionable([], scheme, machine.getState(), "ItemWizard.Step1")
       ).toBeTruthy();
       machine.transition([], "Auth", "LoggedOut");
       expect(
-        isTransitionable(scheme, machine.getState(), "ItemWizard.Step1")
+        isTransitionable([], scheme, machine.getState(), "ItemWizard.Step1")
       ).toBeFalsy();
       machine.transition([], "Auth", "LoggedIn");
       expect(
-        isTransitionable(scheme, machine.getState(), "ItemWizard.Step1")
+        isTransitionable([], scheme, machine.getState(), "ItemWizard.Step1")
       ).toBeFalsy();
     });
     test("should only work if deps are available", () => {
       const initialState = { Auth: "LoggedOut" };
 
       const machine = createMachine(scheme, initialState);
-      machine.transition([], "ItemWizard", "Step1");
+      expect(() => machine.transition([], "ItemWizard", "Step1")).toThrow();
 
       expect(machine.getState()).not.toHaveProperty("ItemWizard");
     });

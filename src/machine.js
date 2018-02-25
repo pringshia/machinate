@@ -97,13 +97,32 @@ const createMachine = function(schema, state, parentMachine) {
       data: payload
     };
 
-    const domainsToRemove = depGraph
+    const dependentDomainsToAdd = depGraph
+      .getDependents(state, schematicToName)
+      .map(node => ({ domain: node.f, state: node.ts[0] && node.ts[0].name }));
+
+    const dependentDomainsToRemove = depGraph
       .getDependents(state, unresolvedFromName)
-      .map(n => n.f)
+      .map(n => n.f);
+
+    const optimizedDomainsToRemove = dependentDomainsToRemove
+      .filter(domain => {
+        const overlap = dependentDomainsToAdd.find(x => x.domain === domain);
+        if (
+          overlap &&
+          state[prefix + domain] &&
+          overlap.state === state[prefix + domain].state
+        ) {
+          return false;
+        }
+        return true;
+      })
       .map(domain => prefix + domain);
 
+    console.log(dependentDomainsToRemove, optimizedDomainsToRemove);
+
     state = Object.entries(state).reduce((obj, [key, value]) => {
-      if (!domainsToRemove.includes(key)) {
+      if (!optimizedDomainsToRemove.includes(key)) {
         obj[key] = value;
       }
       return obj;

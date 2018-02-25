@@ -102,7 +102,7 @@ class Demo extends React.Component {
                                       newData[idx] = editedNum;
 
                                       go("Items.List", newData)();
-                                      go("Block.Element", editedNum)();
+                                      // go("Block.Element", editedNum)();
                                     }}
                                   >
                                     Save

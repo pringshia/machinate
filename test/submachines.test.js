@@ -82,7 +82,6 @@ describe("submachines", () => {
     const wrapper2 = shallow(
       <DomainState
         Visible={(_, { transition }) => {
-          console.log("yo");
           transition("Display", "Hidden");
         }}
         Hidden={() => null}

@@ -86,7 +86,6 @@ class Demo extends React.Component {
                                 </div>
                               )}
                               Edit={(editedNum, { go }) => {
-                                console.log(editedNum);
                                 return (
                                   <div className="block edit">
                                     <div>

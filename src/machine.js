@@ -152,12 +152,12 @@ const createMachine = function(schema, state, parentMachine) {
         ].join("/");
         return fullName === resolvedDomainName;
       });
-      comps.forEach(comp =>
-        console.log(
-          "Updating",
-          [...comp.props._config.scope, comp.props._config.domainName].join("/")
-        )
-      );
+      // comps.forEach(comp =>
+      //   console.log(
+      //     "Updating",
+      //     [...comp.props._config.scope, comp.props._config.domainName].join("/")
+      //   )
+      // );
       comps.forEach(comp => comp.forceUpdate());
     }
 

@@ -16,3 +16,5 @@ install:
 script:
   - npm test
   - $(npm bin)/cypress run --record
+after_failure:
+  - find /home/travis/.npm/_logs/ -type f -exec cat {} +

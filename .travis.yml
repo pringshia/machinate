@@ -9,8 +9,8 @@ before_install:
   - npm install -g http-server
 install:
   - npm install
-  - cd demo/03-submachines && npm install && npm build
-  - http-server ./public -p 3001 &
+  - cd demo/03-submachines && npm install && npm run build
+  - http-server ./build -p 3001 &
   - cd ../..
 script:
   - npm test

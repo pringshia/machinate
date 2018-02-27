@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "",
   "keywords": [],
-  "homepage": "https://codesandbox.io/s/new",
   "main": "src/index.js",
   "dependencies": {
     "machinate": "~1.0.12",

@@ -1,5 +1,6 @@
 {
-  "name": "new",
+  "name": "demo-02",
+  "private": true,
   "version": "1.0.0",
   "description": "",
   "keywords": [],

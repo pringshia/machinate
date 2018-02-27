@@ -7,11 +7,9 @@ cache:
 before_install:
   - npm install -g http-server
 install:
-  - npm install
-  - npm run build
-  - cd demo/03-submachines
-  - npm install
-  - cp -r ../../build ./node_modules/machinate/
+  - npm link && npm run build
+  - cd demo/03-submachines && npm install
+  - npm link machinate
   - npm run build
 before_script:
   - http-server ./build -p 3001 &

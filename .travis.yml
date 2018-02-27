@@ -8,7 +8,9 @@ before_install:
   - npm install -g http-server
 install:
   - npm link
-  - cd demo/03-submachines && npm install
+  - cd demo/03-submachines
+  - npm install
+before_script:
   - npm link machinate
   - npm run build
   - http-server ./build -p 3001 &

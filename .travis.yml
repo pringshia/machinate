@@ -4,12 +4,13 @@ node_js: 8
 cache:
   directories:
     - ~/.npm
-    - node_modules
 before_install:
   - npm install -g http-server
 install:
-  - npm install
-  - cd demo/03-submachines && npm install && npm run build
+  - npm link
+  - cd demo/03-submachines && npm install
+  - npm link machinate
+  - npm run build
   - http-server ./build -p 3001 &
   - cd ../..
 script:

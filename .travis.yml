@@ -12,6 +12,7 @@ install:
   - cd demo/03-submachines
   - npm install
   - cp -r ../../build ./node_modules/machinate/
+  - npm run build
 before_script:
   - http-server ./build -p 3001 &
   - cd ../..

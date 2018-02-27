@@ -10,7 +10,7 @@ before_install:
 install:
   - npm install
   - cd demo-03-submachines && npm install && npm build
-  - http-server ./ -p 3001 &
+  - http-server ./public -p 3001 &
 script:
   - npm test
   - $(npm bin)/cypress run --record

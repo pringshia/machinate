@@ -1,5 +1,20 @@
 sudo: false
 language: node_js
 node_js: 8
-install: npm install
-script: npm test
+cache:
+  directories:
+    - ~/.npm
+    - node_modules
+before_install:
+  - npm install -g http-server
+install:
+  - npm link && npm run build
+  - cd demo/03-submachines && npm install
+  - npm link machinate
+  - npm run build
+before_script:
+  - http-server ./build -p 3001 &
+  - cd ../..
+script:
+  - npm test
+  - $(npm bin)/cypress run --record

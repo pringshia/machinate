@@ -4,6 +4,7 @@ node_js: 8
 cache:
   directories:
     - ~/.npm
+    - node_modules
 before_install:
   - npm install -g http-server
 install:

@@ -45,6 +45,7 @@ class Demo extends React.Component {
         ref={ref => (window.machine = ref.state.machine)}
         key="main"
       >
+        <h2 data-test="list-header">My List</h2>
         <States
           for="Items"
           List={(data, { go }) => (
@@ -53,75 +54,85 @@ class Demo extends React.Component {
               Show={() => {
                 return (
                   <React.Fragment>
-                    <button onClick={go("Visibility.Hide")}>
+                    <button
+                      data-test="toggle-visibility"
+                      onClick={go("Visibility.Hide")}
+                    >
                       Toggle Show/Hide
                     </button>
                     <button
+                      data-test="add-block"
                       onClick={go("Items.List", [...data, data.length + 1])}
                     >
                       Add block
                     </button>
 
-                    {data.map((num, idx) => (
-                      <Submachine
-                        key={"item-" + idx}
-                        id={"item-" + idx}
-                        initial={this.initialBlockState(num)}
-                      >
-                        <States
-                          for="Block"
-                          Element={(num, { transition }) => (
-                            <States
-                              for="Mode"
-                              View={() => (
-                                <div className="block">
-                                  <div>{num}</div>
-                                  <button
-                                    onClick={() =>
-                                      transition("Mode", "Edit", num)
-                                    }
-                                  >
-                                    Edit
-                                  </button>
-                                </div>
-                              )}
-                              Edit={(editedNum, { go }) => {
-                                return (
-                                  <div className="block edit">
-                                    <div>
-                                      <input
-                                        key={idx}
-                                        value={editedNum}
-                                        onChange={e =>
-                                          go("Mode.Edit", e.target.value)()
-                                        }
-                                      />
-                                    </div>
+                    <div className="list-container">
+                      {data.map((num, idx) => (
+                        <Submachine
+                          key={"item-" + idx}
+                          id={"item-" + idx}
+                          initial={this.initialBlockState(num)}
+                        >
+                          <States
+                            for="Block"
+                            Element={(num, { transition }) => (
+                              <States
+                                for="Mode"
+                                View={() => (
+                                  <div className="block">
+                                    <div data-test={"text-" + idx}>{num}</div>
                                     <button
-                                      onClick={e => {
-                                        const newData = [...data];
-                                        newData[idx] = editedNum;
-
-                                        go("Items.List", newData)();
-                                        go("Block.Element", editedNum)();
-                                        go("Mode.View")();
-                                      }}
+                                      data-test={"change-mode-" + idx}
+                                      onClick={() =>
+                                        transition("Mode", "Edit", num)
+                                      }
                                     >
-                                      Save
-                                    </button>
-                                    <button
-                                      onClick={e => go("Mode.View", num)()}
-                                    >
-                                      Cancel
+                                      Edit
                                     </button>
                                   </div>
-                                );
-                              }}
-                            />
-                          )}
-                        />
-                      </Submachine>
-                    ))}
+                                )}
+                                Edit={(editedNum, { go }) => {
+                                  return (
+                                    <div className="block edit">
+                                      <div>
+                                        <input
+                                          data-test={"input-" + idx}
+                                          key={idx}
+                                          value={editedNum}
+                                          onChange={e =>
+                                            go("Mode.Edit", e.target.value)()
+                                          }
+                                        />
+                                      </div>
+                                      <button
+                                        data-test={"save-" + idx}
+                                        onClick={e => {
+                                          const newData = [...data];
+                                          newData[idx] = editedNum;
+
+                                          go("Items.List", newData)();
+                                          go("Block.Element", editedNum)();
+                                          go("Mode.View")();
+                                        }}
+                                      >
+                                        Save
+                                      </button>
+                                      <button
+                                        data-test={"cancel-mode-" + idx}
+                                        onClick={e => go("Mode.View", num)()}
+                                      >
+                                        Cancel
+                                      </button>
+                                    </div>
+                                  );
+                                }}
+                              />
+                            )}
+                          />
+                        </Submachine>
+                      ))}
+                    </div>
                   </React.Fragment>
                 );
               }}

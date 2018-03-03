@@ -41,19 +41,11 @@ const createMachine = function(schema, state, parentMachine) {
   const _setState = nextState => {
     state = nextState;
     emitter.emit("set-state", { state });
-    log(
-      "state - " +
-        JSON.stringify(
-          Object.entries(state).filter(
-            ([key]) => key.startsWith("item-0") || key.startsWith("Items")
-          )
-        )
-    );
   };
 
   const setState = nextState => {
     state = nextState;
-    emitter.emit("force-state");
+    emitter.emit("force-state", { state });
   };
 
   const transition = (

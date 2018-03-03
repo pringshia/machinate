@@ -14,10 +14,15 @@ class States extends React.Component {
   //     this.props.for
   //   );
   // }
+  componentWillMount() {
+    const { for: forDomain } = this.props;
+    const { machine, scope } = this.context;
+    this.DomainState = machine.componentForDomain(scope, forDomain);
+  }
   render() {
     const { for: forDomain, ...props } = this.props;
-    const { machine, scope } = this.context;
-    const DomainState = machine.componentForDomain(scope, forDomain);
+    const { DomainState } = this;
+
     return <DomainState key={forDomain} {...props} />;
   }
 }

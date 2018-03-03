@@ -9,16 +9,13 @@ import {
 } from "./helpers";
 
 import DomainState from "./components/DomainState";
+import eventemitter from "./emitter";
 
 const createMachine = function(schema, state, parentMachine) {
   let components = [];
-  const rootMachine = parentMachine
-    ? parentMachine.rootMachine || parentMachine
-    : null;
   const submachines = [];
-  let onSetState = () => null;
+  const emitter = eventemitter();
 
-  // TODO: throw if scheme or initial state is missing
   if (!schema) {
     throw new Error("Machine must be initialized with a scheme");
   }
@@ -41,19 +38,37 @@ const createMachine = function(schema, state, parentMachine) {
     );
   };
 
-  const setState = nextState => {
+  const _setState = nextState => {
     state = nextState;
-    onSetState();
+    emitter.emit("set-state", { state });
+    log(
+      "state - " +
+        JSON.stringify(
+          Object.entries(state).filter(
+            ([key]) => key.startsWith("item-0") || key.startsWith("Items")
+          )
+        )
+    );
   };
 
-  const transition = (scope, domainName, stateName, payload) => {
-    // TODO: resolve these names using scope:
-    // console.log(scope, domainName, stateName, payload);
+  const setState = nextState => {
+    state = nextState;
+    emitter.emit("force-state");
+  };
+
+  const transition = (
+    scope,
+    domainName,
+    stateName,
+    payload,
+    isTriggered = false
+  ) => {
     const {
       prefix,
       prefixArray,
       fullName: resolvedDomainName
     } = resolveSubdomain(state, scope, domainName);
+
     const schematicToName =
       domainName.split("/").slice(-1)[0] + "." + stateName;
     const toName = resolvedDomainName + "." + stateName;
@@ -61,8 +76,7 @@ const createMachine = function(schema, state, parentMachine) {
     const fromName =
       state[resolvedDomainName] &&
       resolvedDomainName + "." + state[resolvedDomainName].state;
-
-    const unresolvedFromName = fromName && fromName.split("/").slice(-1)[0];
+    const schematicFromName = fromName && fromName.split("/").slice(-1)[0];
 
     if (
       !isTransitionable(
@@ -92,18 +106,38 @@ const createMachine = function(schema, state, parentMachine) {
     //   depGraph.getDependents(state, toName).map(n => n.f)
     // );
 
+    log(
+      [
+        "going from",
+        fromName,
+        "to",
+        toName,
+        "with payload",
+        payload,
+        "and dependents",
+        depGraph.getDependents(state, fromName).map(n => n.f),
+        depGraph.getDependents(state, toName).map(n => n.f)
+      ].join(" ")
+    );
+
     const oldState = state[resolvedDomainName];
-    state[resolvedDomainName] = {
-      state: stateName,
-      data: payload
-    };
+
+    _setState({
+      ...state,
+      ...{
+        [resolvedDomainName]: {
+          state: stateName,
+          data: payload
+        }
+      }
+    });
 
     const dependentDomainsToAdd = depGraph
       .getDependents(state, schematicToName)
       .map(node => ({ domain: node.f, state: node.ts[0] && node.ts[0].name }));
 
     const dependentDomainsToRemove = depGraph
-      .getDependents(state, unresolvedFromName)
+      .getDependents(state, schematicFromName)
       .map(n => n.f);
 
     const optimizedDomainsToRemove = dependentDomainsToRemove
@@ -129,46 +163,47 @@ const createMachine = function(schema, state, parentMachine) {
       }
       return true;
     });
-    // .map(toAdd => prefix + toAdd.domain);
 
     optimizedDomainsToAdd.forEach(toAdd => {
       console.log("triggering " + toAdd.domain + "." + toAdd.state);
-      transition(prefixArray, toAdd.domain, toAdd.state);
+      // ponder: we are recursing before updating the state below, is that ok?
+      emitter.emit("triggered-add", { ...toAdd });
+      transition(prefixArray, toAdd.domain, toAdd.state, undefined, true);
     });
 
-    state = Object.entries(state).reduce((obj, [key, value]) => {
-      if (!optimizedDomainsToRemove.includes(key)) {
-        obj[key] = value;
-      }
-      return obj;
-    }, {});
+    _setState(
+      Object.entries(state).reduce((obj, [key, value]) => {
+        if (!optimizedDomainsToRemove.includes(key)) {
+          obj[key] = value;
+        }
+        emitter.emit("triggered-remove", { domain: key });
+        return obj;
+      }, {})
+    );
 
     // should dependency components be included in this force update as well?
-    if (schematicToName !== unresolvedFromName || payload !== oldState.data) {
+    if (schematicToName !== schematicFromName || payload !== oldState.data) {
       const comps = components.filter(comp => {
-        const fullName = [
-          ...comp.props._config.scope,
-          comp.props._config.domainName
-        ].join("/");
+        const fullName = _componentFullName(comp);
         return fullName === resolvedDomainName;
       });
-      // comps.forEach(comp =>
-      //   console.log(
-      //     "Updating",
-      //     [...comp.props._config.scope, comp.props._config.domainName].join("/")
-      //   )
-      // );
       comps.forEach(comp => comp.forceUpdate());
     }
 
-    // _updateAll();
+    if (isTriggered) {
+      emitter.emit("transition-triggered", {
+        fromName,
+        toName,
+        payload,
+        state
+      });
+    } else {
+      emitter.emit("transition", { fromName, toName, payload, state });
+    }
   };
 
-  const _updateAll = () => {
-    // - is there a better, more efficient way to do this?
-    // - is this idiomatic react? should I just setState() on sub-components?
-    components.forEach(comp => comp.forceUpdate());
-  };
+  const _componentFullName = comp =>
+    [...comp.props._config.scope, comp.props._config.domainName].join("/");
 
   const go = (scope, notation, payload) => _ => {
     const [domainName, stateName] = notation.split(".");
@@ -176,9 +211,6 @@ const createMachine = function(schema, state, parentMachine) {
   };
 
   const componentForDomain = (scope, domainName) => {
-    // const resolvedDomain = [...scope, domainName].join("/");
-
-    // console.log("name", resolvedDomain, getState()[resolvedDomain]);
     const generatedPropTypes = Object.values(
       getDomainInfo(domainName).states || {}
     ).reduce((obj, stateName) => {
@@ -197,6 +229,7 @@ const createMachine = function(schema, state, parentMachine) {
           machine: {
             transition: (...args) => transition(scope, ...args),
             go: (...args) => go(scope, ...args),
+            log: log,
             getState
           }
         }}
@@ -217,38 +250,48 @@ const createMachine = function(schema, state, parentMachine) {
       obj[prefixedKey] = value;
       return obj;
     }, {});
-    state = Object.assign({}, prefixedInitialState, state);
+
+    _setState(Object.assign({}, state, prefixedInitialState));
+
+    // Perhaps updates should be moved into _setState instead. Fix bug where after
+    // a submachine was reregistered with a different initial value, the component
+    // wasn't updating in the UI.
+    // const componentsToUpdate = components.filter(comp =>
+    //   _componentFullName(comp).startsWith([...scope, ""].join("/"))
+    // );
+    // componentsToUpdate.forEach(comp => comp.forceUpdate());
   };
 
   const removeSubmachine = scope => {
     const prefix = scope.join("/") + "/";
-    state = Object.entries(state).reduce((obj, [key, value]) => {
-      if (!key.startsWith(prefix)) {
-        obj[key] = value;
-      }
-      return obj;
-    }, {});
+    _setState(
+      Object.entries(state).reduce((obj, [key, value]) => {
+        if (!key.startsWith(prefix)) {
+          obj[key] = value;
+        }
+        return obj;
+      }, {})
+    );
   };
+
+  const log = msg => emitter.emit("log", msg);
 
   const createdMachine = {
     getState,
     setState,
     transition,
 
-    onSetState: fn => (onSetState = fn),
-
     getDomainInfo,
     componentForDomain,
     getComponents: () => components,
-    rootMachine,
     registerSubmachine,
     removeSubmachine,
-    getSubmachines: () => submachines
-  };
+    getSubmachines: () => submachines,
 
-  if (parentMachine) {
-    rootMachine.registerSubmachine(createdMachine);
-  }
+    addListener: emitter.addListener,
+    removeListener: emitter.removeListener,
+    log
+  };
 
   return createdMachine;
 };

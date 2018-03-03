@@ -12,7 +12,7 @@ class Machinate extends React.Component {
       context && context.machine // pass the parent machine if available
     );
 
-    machine.onSetState(() => this.forceUpdate());
+    machine.addListener("force-state", () => this.forceUpdate());
 
     this.state = { machine };
   }

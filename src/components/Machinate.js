@@ -12,9 +12,25 @@ class Machinate extends React.Component {
       context && context.machine // pass the parent machine if available
     );
 
-    machine.addListener("force-state", () => this.forceUpdate());
+    machine.addListener("force-state", () => {
+      this.forced = true;
+      this.forceUpdate();
+    });
 
     this.state = { machine };
+  }
+  componentDidUpdate() {
+    if (this.forced) {
+      this.forced = false;
+      this.forceUpdate(); // update context value
+    }
+  }
+  getChildContext() {
+    return {
+      machine: this.state.machine,
+      scope: [],
+      forced: !!this.forced
+    };
   }
   createMachine(scheme, initialState) {
     // TODO: Implement
@@ -22,12 +38,6 @@ class Machinate extends React.Component {
   }
   render() {
     return this.props.children || null;
-  }
-  getChildContext() {
-    return {
-      machine: this.state.machine,
-      scope: []
-    };
   }
 }
 
@@ -38,7 +48,8 @@ Machinate.propTypes = {
 
 Machinate.childContextTypes = {
   machine: PropTypes.object,
-  scope: PropTypes.array
+  scope: PropTypes.array,
+  forced: PropTypes.bool
 };
 
 Machinate.contextTypes = {

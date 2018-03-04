@@ -11,7 +11,7 @@ import {
 import DomainState from "./components/DomainState";
 import eventemitter from "./emitter";
 
-const createMachine = function(schema, state, parentMachine) {
+const createMachine = function(schema, state) {
   let components = [];
   const submachines = [];
   const emitter = eventemitter();
@@ -22,6 +22,8 @@ const createMachine = function(schema, state, parentMachine) {
   if (!state) {
     throw new Error("Machine must be initialized with an initial state");
   }
+
+  emitter.emit("init-state", { state });
 
   const depGraph = createGraph(schema);
 

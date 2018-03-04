@@ -11,13 +11,11 @@ class Submachine extends Component {
   constructor(props, context) {
     super(props, context);
 
-    this.register(context.machine);
+    this.register(context.machine, props, context);
   }
-  register(machine) {
-    machine.registerSubmachine(
-      this.getChildContext().scope,
-      this.props.initial
-    );
+  register(machine, props, context) {
+    !context.forced &&
+      machine.registerSubmachine(this.getChildContext().scope, props.initial);
   }
   componentDidMount() {
     // TODO: Test out this behavior of re-registering submachines in cDM.
@@ -29,7 +27,16 @@ class Submachine extends Component {
     // be added. Also, only leaving this in componentDidMount and not the constructor
     // causes extremely erratic behavior, where dependent children may depend on
     // the parent submachine's state.
-    this.register(this.context.machine);
+    //
+    // this.register(this.context.machine);
+  }
+  componentWillReceiveProps(nextProps, nextContext) {
+    // TODO: implement a better deep compare
+    const deepdiff = (a, b) => JSON.stringify(a) !== JSON.stringify(b);
+    if (deepdiff(this.props.initial, nextProps.initial)) {
+      // console.log("re-registering ", nextProps.id, "with", nextProps.initial);
+      this.register(this.context.machine, nextProps, nextContext);
+    }
   }
   componentWillUnmount() {
     this.context.machine.removeSubmachine(this.getChildContext().scope);
@@ -41,7 +48,8 @@ class Submachine extends Component {
 
 Submachine.contextTypes = {
   scope: PropTypes.array,
-  machine: PropTypes.object
+  machine: PropTypes.object,
+  forced: PropTypes.bool
 };
 
 Submachine.childContextTypes = {

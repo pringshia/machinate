@@ -1,6 +1,7 @@
 import React from "react";
 import { render } from "react-dom";
 import { Machinate, States, Submachine } from "machinate";
+import { Inspector } from "machinate-plugins-inspector";
 
 class Demo extends React.Component {
   constructor(props) {
@@ -45,6 +46,7 @@ class Demo extends React.Component {
         ref={ref => (window.machine = ref.state.machine)}
         key="main"
       >
+        <Inspector />
         <h2 data-test="list-header">My List</h2>
         <States
           for="Items"
@@ -112,7 +114,6 @@ class Demo extends React.Component {
                                           newData[idx] = editedNum;
 
                                           go("Items.List", newData)();
-                                          go("Block.Element", editedNum)();
                                           go("Mode.View")();
                                         }}
                                       >

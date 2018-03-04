@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Demo</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script src="./build/lib.js"></script>
+  <script src="./../../build/lib.js"></script>
+  <!-- <script src="https://unpkg.com/machinate"></script> -->
+  <script src="https://unpkg.com/react@16/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@16/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
+
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+  const { Inspector } = window.MachinateInspector;
+  const { Machinate, States, Submachine } = window.Machinate;
+
+  // const scheme = { Auth: ["LoggedOut", "LoggedIn"] };
+  // const initial = { Auth: "LoggedOut" };
+  // const App = () => <Machinate scheme={scheme} initial={initial}>
+  //   <Inspector />
+  //   <States for="Auth"
+  //     LoggedOut={() => <h1>Logged out.</h1>}
+  //     LoggedIn={(data) => <h1>Logged in - {data}.</h1>}
+  //   />
+  // </Machinate>
+
+  class Demo extends React.Component {
+  constructor(props) {
+    super(props);
+
+    this.scheme = {
+      Items: { states: ["List"] },
+      Visibility: { states: ["Show", "Hide"], deps: { "Items.List": "Show" } },
+      Block: { states: ["Element"] },
+      BlockVisibility: {
+        states: ["Show", "Hide"],
+        deps: { "Block.Element": "Show" }
+      },
+      Mode: {
+        states: ["View", "Edit"],
+        deps: { "BlockVisibility.Show": "View" }
+      }
+    };
+    this.initialState = {
+      Items: { state: "List", data: ["Block"] },
+      Visibility: "Show"
+    };
+
+    this.initialBlockState = data => {
+      console.log("generating initial submachine state", {data});
+      return {
+        Block: {
+          state: "Element",
+          data
+        },
+        BlockVisibility: {
+          state: "Show"
+        },
+        Mode: {
+          state: "View"
+        }
+      }
+    };
+  }
+  render() {
+    return (
+      <Machinate
+        scheme={this.scheme}
+        initial={this.initialState}
+        ref={ref => (window.machine = ref.state.machine)}
+        key="main"
+      >
+        <Inspector />
+        <h2 data-test="list-header">My List</h2>
+        <States
+          for="Items"
+          List={(data, { go }) => (
+            <States
+              for="Visibility"
+              Show={() => {
+                return (
+                  <React.Fragment>
+                    <button
+                      data-test="toggle-visibility"
+                      onClick={go("Visibility.Hide")}
+                    >
+                      Toggle Show/Hide
+                    </button>
+                    <button
+                      data-test="add-block"
+                      onClick={go("Items.List", [...data, data.length + 1])}
+                    >
+                      Add block
+                    </button>
+
+                    <div className="list-container">
+                      {data.map((num, idx) => (
+                        <Submachine
+                          key={"item-" + idx}
+                          id={"item-" + idx}
+                          initial={this.initialBlockState(num)}
+                        >
+                          <States
+                            for="Block"
+                            Element={(num, { transition }) => {
+                              return <States
+                                for="Mode"
+                                View={() => (
+                                  <div className="block">
+                                    <div data-test={"text-" + idx}>{num}</div>
+                                    <button
+                                      data-test={"change-mode-" + idx}
+                                      onClick={() =>
+                                        transition("Mode", "Edit", num)
+                                      }
+                                    >
+                                      Edit
+                                    </button>
+                                  </div>
+                                )}
+                                Edit={(editedNum, { go }) => {
+                                  return (
+                                    <div className="block edit">
+                                      <div>
+                                        <input
+                                          data-test={"input-" + idx}
+                                          key={idx}
+                                          value={editedNum}
+                                          onChange={e =>
+                                            go("Mode.Edit", e.target.value)()
+                                          }
+                                        />
+                                      </div>
+                                      <button
+                                        data-test={"save-" + idx}
+                                        onClick={e => {
+                                          const newData = [...data];
+                                          newData[idx] = editedNum;
+
+                                          go("Items.List", newData)();
+                                          go("Mode.View")();
+                                        }}
+                                      >
+                                        Save
+                                      </button>
+                                      <button
+                                        data-test={"cancel-mode-" + idx}
+                                        onClick={e => go("Mode.View", num)()}
+                                      >
+                                        Cancel
+                                      </button>
+                                      <button
+                                        data-test={"delete-" + idx}
+                                        onClick={e => {
+                                          const newData = data.filter((_, idx2) => idx !== idx2)
+                                          go("Items.List", newData)()
+                                        }}
+                                      >
+                                        Delete
+                                      </button>
+                                    </div>
+                                  );
+                                }}
+                              />
+                            }}
+                          />
+                        </Submachine>
+                      ))}
+                    </div>
+                  </React.Fragment>
+                );
+              }}
+              Hide={() => (
+                <div>
+                  <button onClick={go("Visibility.Show")}>
+                    Toggle Show/Hide
+                  </button>
+                </div>
+              )}
+            />
+          )}
+        />
+      </Machinate>
+    );
+  }
+}
+
+  ReactDOM.render(
+    // <Inspector />,
+    <Demo />,
+    document.getElementById("root")
+  );
+  </script>
+</body>
+
+</html>

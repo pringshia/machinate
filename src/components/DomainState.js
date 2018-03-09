@@ -3,22 +3,22 @@ import PropTypes from "prop-types";
 import State from "./State";
 
 class DomainState extends Component {
-  constructor(props) {
-    super(props);
-    this.props._config.onAdd(this);
+  constructor(props, context) {
+    super(props, context);
+    context.machine._registerComponentForUpdates(this);
   }
   componentWillUnmount() {
-    this.props._config.onRemove(this);
+    this.context.machine._unregisterComponentForUpdates(this);
   }
   resolvedDomainName = () => {
-    const { domainName, machine: { getState } } = this.props._config;
+    const { forDomain: domainName } = this.props;
     const { scope } = this.context;
     const resolvedDomainName = [...scope, domainName].join("/");
     return resolvedDomainName;
   };
   render() {
-    const { domainName, machine: { getState } } = this.props._config;
-    const { scope } = this.context;
+    const { forDomain: domainName } = this.props;
+    const { scope, machine: { getState } } = this.context;
     const resolvedDomainName = [...scope, domainName].join("/");
     const stateInfo = getState(resolvedDomainName);
     if (!stateInfo) return null;
@@ -31,7 +31,6 @@ class DomainState extends Component {
       <State
         key={resolvedDomainName + "." + stateName}
         of={resolvedDomainName + "." + stateName}
-        _config={this.props._config}
         children={stateComponentProps =>
           this.props[stateName](stateComponentProps)
         }
@@ -41,7 +40,8 @@ class DomainState extends Component {
 }
 
 DomainState.contextTypes = {
-  scope: PropTypes.array
+  scope: PropTypes.array,
+  machine: PropTypes.object
 };
 
 export default DomainState;

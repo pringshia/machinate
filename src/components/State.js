@@ -4,8 +4,8 @@ import PropTypes from "prop-types";
 class State extends Component {
   constructor(props, context) {
     super(props, context);
-    this.context.machine._registerComponentForUpdates(this);
-    this.transition = this.context.machine.transition;
+    context.machine._registerComponentForUpdates(this);
+    this.transition = context.machine.transition;
   }
   resolvedDomainName = () => {
     return this.props.of.split(".")[0];

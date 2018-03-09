@@ -221,23 +221,7 @@ const createMachine = function(schema, state) {
       return obj;
     }, {});
 
-    const Wrapper = props => (
-      <DomainState
-        _config={{
-          onAdd: _registerComponentForUpdates,
-          onRemove: _unregisterComponentForUpdates,
-          scope,
-          domainName,
-          machine: {
-            transition: (...args) => transition(scope, ...args),
-            go: (...args) => go(scope, ...args),
-            log: log,
-            getState
-          }
-        }}
-        {...props}
-      />
-    );
+    const Wrapper = props => <DomainState {...props} />;
     Wrapper.displayName = domainName + "[Domain]";
     Wrapper.propTypes = generatedPropTypes;
 

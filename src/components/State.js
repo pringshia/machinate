@@ -25,7 +25,7 @@ class State extends Component {
     return stateInfo;
   };
   render() {
-    const { machine: { transition, go }, scope } = this.context;
+    const { machine: { transition, go, update }, scope } = this.context;
 
     const stateInfo = this.getActiveState();
     if (!stateInfo) return null;
@@ -34,7 +34,8 @@ class State extends Component {
       data: stateInfo.data,
       transition: (...args) =>
         this.getActiveState() && transition(scope, ...args), // only transition if state is active
-      go: (...args) => this.getActiveState() && go(scope, ...args)
+      go: (...args) => this.getActiveState() && go(scope, ...args),
+      update: (...args) => this.getActiveState() && update(scope, ...args)
     });
   }
 }

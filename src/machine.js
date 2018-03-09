@@ -205,6 +205,17 @@ const createMachine = function(schema, state) {
     transition(scope, domainName, stateName, payload);
   };
 
+  const update = (scope, notation, updateFn) => {
+    const [domainName, stateName] = notation.split(".");
+    const stateInfo = getState(
+      resolveSubdomain(state, scope, domainName).fullName
+    );
+
+    if (stateInfo.state === stateName) {
+      go(scope, notation, updateFn(stateInfo.data))();
+    }
+  };
+
   const _registerComponentForUpdates = ref => {
     components.push(ref);
   };
@@ -267,6 +278,7 @@ const createMachine = function(schema, state) {
     setState,
     transition,
     go,
+    update,
 
     getDomainInfo,
     componentForDomain,

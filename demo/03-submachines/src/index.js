@@ -99,7 +99,12 @@ class Demo extends React.Component {
                                     </button>
                                   </div>
                                 )}
-                                Edit={({ data: editedNum, go, transition }) => {
+                                Edit={({
+                                  data: editedNum,
+                                  go,
+                                  transition,
+                                  update
+                                }) => {
                                   return (
                                     <div className="block edit">
                                       <div>
@@ -129,12 +134,15 @@ class Demo extends React.Component {
                                         onClick={e => {
                                           setTimeout(
                                             () =>
-                                              transition("Mode", "Edit", ""),
-                                            2000
+                                              update(
+                                                "Mode.Edit",
+                                                data => data + "!!!"
+                                              ),
+                                            1000
                                           );
                                         }}
                                       >
-                                        Clear
+                                        Exclaim!
                                       </button>
                                       <button
                                         data-test={"cancel-mode-" + idx}

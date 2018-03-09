@@ -50,7 +50,7 @@ const createMachine = function(schema, state) {
     emitter.emit("force-state", { state });
   };
 
-  const transition = (
+  const _transition = (
     scope,
     domainName,
     stateName,
@@ -162,7 +162,7 @@ const createMachine = function(schema, state) {
       console.log("triggering " + toAdd.domain + "." + toAdd.state);
       // ponder: we are recursing before updating the state below, is that ok?
       emitter.emit("triggered-add", { ...toAdd });
-      transition(prefixArray, toAdd.domain, toAdd.state, undefined, true);
+      _transition(prefixArray, toAdd.domain, toAdd.state, undefined, true);
     });
 
     _setState(
@@ -201,8 +201,12 @@ const createMachine = function(schema, state) {
   //   [...scope, domainName].join("/");
 
   const go = (scope, notation, payload) => _ => {
+    transition(scope, notation, payload);
+  };
+
+  const transition = (scope, notation, payload) => {
     const [domainName, stateName] = notation.split(".");
-    transition(scope, domainName, stateName, payload);
+    _transition(scope, domainName, stateName, payload);
   };
 
   const update = (scope, notation, updateFn) => {

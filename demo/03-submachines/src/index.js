@@ -92,7 +92,7 @@ class Demo extends React.Component {
                                     <button
                                       data-test={"change-mode-" + idx}
                                       onClick={() =>
-                                        transition("Mode", "Edit", num)
+                                        transition("Mode.Edit", num)
                                       }
                                     >
                                       Edit

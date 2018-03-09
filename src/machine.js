@@ -196,12 +196,21 @@ const createMachine = function(schema, state) {
     }
   };
 
-  const _componentFullName = comp =>
-    [...comp.props._config.scope, comp.props._config.domainName].join("/");
+  const _componentFullName = comp => comp.resolvedDomainName();
+  // const _componentFullName = (scope, domainName) =>
+  //   [...scope, domainName].join("/");
 
   const go = (scope, notation, payload) => _ => {
     const [domainName, stateName] = notation.split(".");
     transition(scope, domainName, stateName, payload);
+  };
+
+  const _registerComponentForUpdates = ref => {
+    components.push(ref);
+  };
+
+  const _unregisterComponentForUpdates = ref => {
+    components = components.filter(comp => comp !== ref);
   };
 
   const componentForDomain = (scope, domainName) => {
@@ -215,9 +224,8 @@ const createMachine = function(schema, state) {
     const Wrapper = props => (
       <DomainState
         _config={{
-          onAdd: ref => components.push(ref),
-          onRemove: ref =>
-            (components = components.filter(comp => comp !== ref)),
+          onAdd: _registerComponentForUpdates,
+          onRemove: _unregisterComponentForUpdates,
           scope,
           domainName,
           machine: {
@@ -274,10 +282,13 @@ const createMachine = function(schema, state) {
     getState,
     setState,
     transition,
+    go,
 
     getDomainInfo,
     componentForDomain,
     getComponents: () => components,
+    _registerComponentForUpdates,
+    _unregisterComponentForUpdates,
     registerSubmachine,
     removeSubmachine,
     getSubmachines: () => submachines,

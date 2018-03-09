@@ -3,7 +3,7 @@ const APP_URL = "http://localhost:3001";
 describe("Demo 3", () => {
   it("is loaded with React properly", () => {
     cy.visit(APP_URL);
-    cy.get("[data-test='list-header']").should("have.text", "My List");
+    cy.get("[data-test='list-header']").should("have.text", "My List - All");
   });
   it("should toggle visibility", () => {
     cy.visit(APP_URL);

@@ -23,7 +23,7 @@ class States extends React.Component {
     const { for: forDomain, ...props } = this.props;
     const { DomainState } = this;
 
-    return <DomainState key={forDomain} {...props} />;
+    return <DomainState key={forDomain} forDomain={forDomain} {...props} />;
   }
 }
 

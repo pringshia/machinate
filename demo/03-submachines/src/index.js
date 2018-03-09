@@ -1,6 +1,6 @@
 import React from "react";
 import { render } from "react-dom";
-import { Machinate, States, Submachine } from "machinate";
+import { Machinate, States, State, Submachine, withState } from "machinate";
 import { Inspector } from "machinate-plugins-inspector";
 
 class Demo extends React.Component {
@@ -39,6 +39,7 @@ class Demo extends React.Component {
     });
   }
   render() {
+    const WhenVisibleHoC = withState("Visibility.Show", () => <span>All</span>);
     return (
       <Machinate
         scheme={this.scheme}
@@ -47,10 +48,14 @@ class Demo extends React.Component {
         key="main"
       >
         <Inspector />
-        <h2 data-test="list-header">My List</h2>
+        <h2 data-test="list-header">
+          My List -{" "}
+          <State of="Visibility.Hide">{() => <span>Hidden</span>}</State>
+          <WhenVisibleHoC />
+        </h2>
         <States
           for="Items"
-          List={(data, { go }) => (
+          List={({ data, go }) => (
             <States
               for="Visibility"
               Show={() => {
@@ -78,7 +83,7 @@ class Demo extends React.Component {
                         >
                           <States
                             for="Block"
-                            Element={(num, { transition }) => (
+                            Element={({ data: num, transition }) => (
                               <States
                                 for="Mode"
                                 View={() => (
@@ -87,14 +92,19 @@ class Demo extends React.Component {
                                     <button
                                       data-test={"change-mode-" + idx}
                                       onClick={() =>
-                                        transition("Mode", "Edit", num)
+                                        transition("Mode.Edit", num)
                                       }
                                     >
                                       Edit
                                     </button>
                                   </div>
                                 )}
-                                Edit={(editedNum, { go }) => {
+                                Edit={({
+                                  data: editedNum,
+                                  go,
+                                  transition,
+                                  update
+                                }) => {
                                   return (
                                     <div className="block edit">
                                       <div>
@@ -118,6 +128,21 @@ class Demo extends React.Component {
                                         }}
                                       >
                                         Save
+                                      </button>
+                                      <button
+                                        data-test={"async-clear-" + idx}
+                                        onClick={e => {
+                                          setTimeout(
+                                            () =>
+                                              update(
+                                                "Mode.Edit",
+                                                data => data + "!!!"
+                                              ),
+                                            1000
+                                          );
+                                        }}
+                                      >
+                                        Exclaim!
                                       </button>
                                       <button
                                         data-test={"cancel-mode-" + idx}

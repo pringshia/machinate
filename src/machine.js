@@ -50,7 +50,7 @@ const createMachine = function(schema, state) {
     emitter.emit("force-state", { state });
   };
 
-  const transition = (
+  const _transition = (
     scope,
     domainName,
     stateName,
@@ -162,7 +162,7 @@ const createMachine = function(schema, state) {
       console.log("triggering " + toAdd.domain + "." + toAdd.state);
       // ponder: we are recursing before updating the state below, is that ok?
       emitter.emit("triggered-add", { ...toAdd });
-      transition(prefixArray, toAdd.domain, toAdd.state, undefined, true);
+      _transition(prefixArray, toAdd.domain, toAdd.state, undefined, true);
     });
 
     _setState(
@@ -196,12 +196,36 @@ const createMachine = function(schema, state) {
     }
   };
 
-  const _componentFullName = comp =>
-    [...comp.props._config.scope, comp.props._config.domainName].join("/");
+  const _componentFullName = comp => comp.resolvedDomainName();
+  // const _componentFullName = (scope, domainName) =>
+  //   [...scope, domainName].join("/");
 
   const go = (scope, notation, payload) => _ => {
+    transition(scope, notation, payload);
+  };
+
+  const transition = (scope, notation, payload) => {
     const [domainName, stateName] = notation.split(".");
-    transition(scope, domainName, stateName, payload);
+    _transition(scope, domainName, stateName, payload);
+  };
+
+  const update = (scope, notation, updateFn) => {
+    const [domainName, stateName] = notation.split(".");
+    const stateInfo = getState(
+      resolveSubdomain(state, scope, domainName).fullName
+    );
+
+    if (stateInfo.state === stateName) {
+      go(scope, notation, updateFn(stateInfo.data))();
+    }
+  };
+
+  const _registerComponentForUpdates = ref => {
+    components.push(ref);
+  };
+
+  const _unregisterComponentForUpdates = ref => {
+    components = components.filter(comp => comp !== ref);
   };
 
   const componentForDomain = (scope, domainName) => {
@@ -212,24 +236,7 @@ const createMachine = function(schema, state) {
       return obj;
     }, {});
 
-    const Wrapper = props => (
-      <DomainState
-        _config={{
-          onAdd: ref => components.push(ref),
-          onRemove: ref =>
-            (components = components.filter(comp => comp !== ref)),
-          scope,
-          domainName,
-          machine: {
-            transition: (...args) => transition(scope, ...args),
-            go: (...args) => go(scope, ...args),
-            log: log,
-            getState
-          }
-        }}
-        {...props}
-      />
-    );
+    const Wrapper = props => <DomainState {...props} />;
     Wrapper.displayName = domainName + "[Domain]";
     Wrapper.propTypes = generatedPropTypes;
 
@@ -274,10 +281,14 @@ const createMachine = function(schema, state) {
     getState,
     setState,
     transition,
+    go,
+    update,
 
     getDomainInfo,
     componentForDomain,
     getComponents: () => components,
+    _registerComponentForUpdates,
+    _unregisterComponentForUpdates,
     registerSubmachine,
     removeSubmachine,
     getSubmachines: () => submachines,

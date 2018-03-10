@@ -30,7 +30,7 @@ class DomainState extends Component {
     return (
       <State
         key={resolvedDomainName + "." + stateName}
-        of={resolvedDomainName + "." + stateName}
+        for={resolvedDomainName + "." + stateName}
         children={stateComponentProps =>
           this.props[stateName](stateComponentProps)
         }

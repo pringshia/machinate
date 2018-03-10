@@ -88,6 +88,7 @@ export const isTransitionable = (scope, scheme, currentState, toState) => {
   const prefix = scope.length === 0 ? "" : [scope, ""].join("/");
 
   const domainInfo = scheme[toDomainName];
+  if (!domainInfo) throw new Error("Invalid state: " + toState);
   if (!domainInfo.deps) return true;
 
   const deps = Object.keys(domainInfo.deps);

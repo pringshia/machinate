@@ -280,9 +280,16 @@ const createMachine = function(schema, state) {
   const createdMachine = {
     getState,
     setState,
+
     transition,
     go,
     update,
+
+    scoped: scope => ({
+      transition: (...args) => transition(scope, ...args),
+      go: (...args) => go(scope, ...args),
+      update: (...args) => update(scope, ...args)
+    }),
 
     getDomainInfo,
     componentForDomain,

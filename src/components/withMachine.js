@@ -6,13 +6,15 @@ const withMachine = Component => {
   const C = (props, context) => {
     const { wrappedComponentRef, ...remainingProps } = props;
 
-    const machineProps = context.machine.scoped(context.scope);
+    // const machineProps = (({ getData }) => ({ getData }))(context.machine);
+    const scopedProps = context.machine.scoped(context.scope);
 
     return (
       <Component
         {...remainingProps}
         ref={wrappedComponentRef}
-        {...machineProps}
+        // {...machineProps}
+        {...scopedProps}
       />
     );
   };

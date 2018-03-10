@@ -8,7 +8,7 @@ const withState = (stateName, Component) => {
     const { wrappedComponentRef, ...remainingProps } = props;
     return (
       <State
-        of={stateName}
+        for={stateName}
         children={stateComponentProps => (
           <Component
             {...remainingProps}

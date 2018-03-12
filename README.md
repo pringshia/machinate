@@ -88,17 +88,19 @@ Warning: Failed prop type: The prop `Unknown` is marked as required in `Auth[Dom
 
 ### **3. connecting states**
 
-Each state prop receives two parameters:
+Each state prop receives an object with the following parameters:
 
-1. the data, if any, associated with the state
-2. a collection of helper methods to manipulate the machine
+1.  **`data`**: the data if any, associated with the state
+2.  **`transition(stateName, optionalData)`**: move the machine to `stateName` and set the data associated with the state to `data`
+3.  **`go(stateName, optionalData)`**: same as `transition()`, but wrapped in a function to delay execution; essentially a convenient helper for transitioning on callbacks
+4.  **`update(stateName, updateFn)`**: same as `transition()`, except the second parameter is a function that transforms the current data to new data
 
-One such helper method is `go()`:
+Here we use the `go()` function:
 
 ```jsx
 <States for="Auth"
-    LoggedIn={data => <h1>Hi {data.user}</h1>}
-    LoggedOut={(data, { go }) => (
+    LoggedIn={({data}) => <h1>Hi {data.user}</h1>}
+    LoggedOut={({ go }) => (
         <button
             onClick={ go("Auth.LoggedIn", {user: "bob"}) }
             value="Login"

@@ -50,7 +50,7 @@ class Demo extends React.Component {
         <Inspector />
         <h2 data-test="list-header">
           My List -{" "}
-          <State of="Visibility.Hide">{() => <span>Hidden</span>}</State>
+          <State for="Visibility.Hide">{() => <span>Hidden</span>}</State>
           <WhenVisibleHoC />
         </h2>
         <States

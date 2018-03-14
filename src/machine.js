@@ -281,7 +281,7 @@ const createMachine = function(schema, state) {
   const isTriggerBlacklisted = name =>
     blacklist.some(regex => !!name.match(regex));
 
-  const executeScoped = (isActive, transient) => {
+  const shouldExecuteScoped = (isActive, transient) => {
     return !transient || isActive();
   };
 
@@ -295,10 +295,11 @@ const createMachine = function(schema, state) {
 
     scoped: (scope, isActive = () => true, transient = true) => ({
       transition: (...args) =>
-        executeScoped(isActive, transient) && transition(scope, ...args),
-      go: (...args) => executeScoped(isActive, transient) && go(scope, ...args),
+        shouldExecuteScoped(isActive, transient) && transition(scope, ...args),
+      go: (...args) =>
+        shouldExecuteScoped(isActive, transient) && go(scope, ...args),
       update: (...args) =>
-        executeScoped(isActive, transient) && update(scope, ...args)
+        shouldExecuteScoped(isActive, transient) && update(scope, ...args)
     }),
 
     external: fnArgs => (name, promise, fallback = () => {}) =>

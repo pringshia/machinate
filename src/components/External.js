@@ -7,7 +7,7 @@ class External extends Component {
       (this.props.checkBlacklisted(this.props.name)
         ? this.props.fallback && {
             ...this.props.fallback,
-            key: this.context.lastForceTime
+            key: this.props.fallback.key || this.context.lastForceTime
           }
         : this.props.children) || null
     );

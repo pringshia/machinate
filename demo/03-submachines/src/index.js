@@ -51,7 +51,7 @@ class Demo extends React.Component {
       return (
         <External
           name="delayed timer"
-          fallback={<Transition key={new Date()} to="Visibility.Hide" />}
+          fallback={<Transition to="Visibility.Hide" />}
         >
           <div>Timer enabled</div>
         </External>

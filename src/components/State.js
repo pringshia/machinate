@@ -1,23 +1,7 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-
-class Transition extends Component {
-  componentWillMount() {
-    this.props.transition(this.props.to, this.props.data);
-  }
-  render() {
-    return this.props.children || null;
-  }
-}
-class External extends Component {
-  render() {
-    return (
-      (this.props.checkBlacklisted(this.props.name)
-        ? this.props.fallback
-        : this.props.children) || null
-    );
-  }
-}
+import Transition from "./Transition";
+import External from "./External";
 
 class State extends Component {
   isUnmounted = false;
@@ -29,7 +13,10 @@ class State extends Component {
       context.scope,
       this.isActive
     );
-
+    this.persistentMethods = this.context.machine.scoped(
+      context.scope,
+      () => true
+    );
     this.Transition = ({ ...props }) => (
       <Transition transition={this.transientMethods.transition} {...props} />
     );
@@ -62,9 +49,7 @@ class State extends Component {
     return stateInfo;
   };
   render() {
-    const { machine: { external }, scope } = this.context;
-
-    const persistentMethods = this.context.machine.scoped(scope, () => true);
+    const { machine: { external } } = this.context;
 
     const stateInfo = this.getActiveState();
     if (!stateInfo) return null;
@@ -74,8 +59,8 @@ class State extends Component {
         data: stateInfo.data,
         ...this.transientMethods,
         persistent: {
-          ...persistentMethods
-        }, // always transition
+          ...this.persistentMethods
+        },
 
         external: external(this.scoped),
 

@@ -1,23 +1,41 @@
 import React from "react";
 import PropTypes from "prop-types";
+import Transition from "./Transition";
+import External from "./External";
 import hoistStatics from "hoist-non-react-statics";
 
 const withMachine = Component => {
-  const C = (props, context) => {
-    const { wrappedComponentRef, ...remainingProps } = props;
+  class C extends React.Component {
+    constructor(props, context) {
+      super(props, context);
+      this.persistentMethods = context.machine.scoped(
+        context.scope,
+        () => true
+      );
+      this.Transition = ({ ...props }) => (
+        <Transition transition={this.persistentMethods.transition} {...props} />
+      );
+      this.External = ({ ...props }) => (
+        <External
+          checkBlacklisted={context.machine.isTriggerBlacklisted}
+          {...props}
+        />
+      );
+    }
+    render() {
+      const { wrappedComponentRef, ...remainingProps } = this.props;
 
-    // const machineProps = (({ getData }) => ({ getData }))(context.machine);
-    const scopedProps = context.machine.scoped(context.scope);
-
-    return (
-      <Component
-        {...remainingProps}
-        ref={wrappedComponentRef}
-        // {...machineProps}
-        {...scopedProps}
-      />
-    );
-  };
+      return (
+        <Component
+          {...remainingProps}
+          ref={wrappedComponentRef}
+          {...this.persistentMethods}
+          Transition={this.Transition}
+          External={this.External}
+        />
+      );
+    }
+  }
 
   C.displayName = `withMachine(${Component.displayName || Component.name})`;
   C.WrappedComponent = Component;

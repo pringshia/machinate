@@ -29,7 +29,8 @@ class Machinate extends React.Component {
     return {
       machine: this.state.machine,
       scope: [],
-      forced: !!this.forced
+      forced: !!this.forced,
+      lastForceTime: this.state.machine.lastForceTime()
     };
   }
   createMachine(scheme, initialState) {
@@ -49,7 +50,8 @@ Machinate.propTypes = {
 Machinate.childContextTypes = {
   machine: PropTypes.object,
   scope: PropTypes.array,
-  forced: PropTypes.bool
+  forced: PropTypes.bool,
+  lastForceTime: PropTypes.any
 };
 
 Machinate.contextTypes = {

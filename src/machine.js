@@ -14,6 +14,7 @@ import eventemitter from "./emitter";
 const createMachine = function(schema, state) {
   let components = [];
   const submachines = [];
+  let lastForceTime = new Date();
   const emitter = eventemitter();
 
   if (!schema) {
@@ -47,6 +48,7 @@ const createMachine = function(schema, state) {
 
   const setState = nextState => {
     state = nextState;
+    lastForceTime = new Date();
     emitter.emit("force-state", { state });
   };
 
@@ -288,6 +290,7 @@ const createMachine = function(schema, state) {
   const createdMachine = {
     getState,
     setState,
+    lastForceTime: () => lastForceTime,
 
     transition,
     go,
@@ -306,6 +309,7 @@ const createMachine = function(schema, state) {
       isTriggerBlacklisted(name) ? fallback(fnArgs) : promise(fnArgs),
     setBlacklist: newBlacklist => {
       blacklist = newBlacklist;
+      setState(getState());
     },
     getBlacklist: () => blacklist,
     isTriggerBlacklisted,

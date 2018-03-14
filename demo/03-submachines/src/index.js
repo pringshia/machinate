@@ -103,7 +103,8 @@ class Demo extends React.Component {
                                   data: editedNum,
                                   go,
                                   transition,
-                                  update
+                                  update,
+                                  external
                                 }) => {
                                   return (
                                     <div className="block edit">
@@ -132,13 +133,22 @@ class Demo extends React.Component {
                                       <button
                                         data-test={"async-clear-" + idx}
                                         onClick={e => {
-                                          setTimeout(
+                                          external(
+                                            "delayed timer",
+                                            () =>
+                                              setTimeout(
+                                                () =>
+                                                  update(
+                                                    "Mode.Edit",
+                                                    data => data + "!!!"
+                                                  ),
+                                                2000
+                                              ),
                                             () =>
                                               update(
                                                 "Mode.Edit",
                                                 data => data + "!!!"
-                                              ),
-                                            1000
+                                              )
                                           );
                                         }}
                                       >

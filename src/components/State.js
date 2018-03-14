@@ -11,21 +11,29 @@ class Transition extends Component {
 }
 
 class State extends Component {
+  isUnmounted = false;
   constructor(props, context) {
     super(props, context);
     context.machine._registerComponentForUpdates(this);
-    const transition = context.machine.transition;
-    this.transition = (...args) =>
-      this.getActiveState() && transition(this.context.scope, ...args);
-    this.Transition = ({ transition, ...props }) => (
-      <Transition transition={this.transition} {...props} />
+
+    this.transientMethods = context.machine.scoped(
+      context.scope,
+      this.isActive
+    );
+
+    this.Transition = ({ ...props }) => (
+      <Transition transition={this.transientMethods.transition} {...props} />
     );
   }
+  isActive = () => {
+    return !this.isUnmounted;
+  };
   resolvedDomainName = () => {
     return this.props.for.split(".")[0];
   };
   componentWillUnmount() {
     this.context.machine._unregisterComponentForUpdates(this);
+    this.isUnmounted = true;
   }
   getActiveState = () => {
     const { machine: { getState } } = this.context;
@@ -39,7 +47,9 @@ class State extends Component {
     return stateInfo;
   };
   render() {
-    const { machine: { transition, go, update }, scope } = this.context;
+    const { machine: { external }, scope } = this.context;
+
+    const persistentMethods = this.context.machine.scoped(scope, () => true);
 
     const stateInfo = this.getActiveState();
     if (!stateInfo) return null;
@@ -47,10 +57,13 @@ class State extends Component {
     return (
       this.props.children({
         data: stateInfo.data,
-        transition: this.transition, // only transition if state is active
-        go: (...args) => this.getActiveState() && go(scope, ...args),
-        globalTransition: (...args) => transition(scope, ...args), // always transition
-        update: (...args) => this.getActiveState() && update(scope, ...args),
+        ...this.transientMethods,
+        persistent: {
+          ...persistentMethods
+        }, // always transition
+
+        external: external(this.scoped),
+
         Transition: this.Transition
       }) || null
     );

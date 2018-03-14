@@ -277,6 +277,13 @@ const createMachine = function(schema, state) {
 
   const log = msg => emitter.emit("log", msg);
 
+  let blacklist = [];
+  const isBlacklisted = name => blacklist.some(regex => !!name.match(regex));
+
+  const executeScoped = (isActive, transient) => {
+    return !transient || isActive();
+  };
+
   const createdMachine = {
     getState,
     setState,
@@ -285,11 +292,20 @@ const createMachine = function(schema, state) {
     go,
     update,
 
-    scoped: scope => ({
-      transition: (...args) => transition(scope, ...args),
-      go: (...args) => go(scope, ...args),
-      update: (...args) => update(scope, ...args)
+    scoped: (scope, isActive = () => true, transient = true) => ({
+      transition: (...args) =>
+        executeScoped(isActive, transient) && transition(scope, ...args),
+      go: (...args) => executeScoped(isActive, transient) && go(scope, ...args),
+      update: (...args) =>
+        executeScoped(isActive, transient) && update(scope, ...args)
     }),
+
+    external: fnArgs => (name, promise, fallback = () => {}) =>
+      isBlacklisted(name) ? fallback(fnArgs) : promise(fnArgs),
+    setBlacklist: newBlacklist => {
+      blacklist = newBlacklist;
+    },
+    getBlacklist: () => blacklist,
 
     getDomainInfo,
     componentForDomain,

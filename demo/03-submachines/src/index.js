@@ -104,7 +104,8 @@ class Demo extends React.Component {
                                   go,
                                   transition,
                                   update,
-                                  external
+                                  external,
+                                  External
                                 }) => {
                                   return (
                                     <div className="block edit">
@@ -142,7 +143,7 @@ class Demo extends React.Component {
                                                     "Mode.Edit",
                                                     data => data + "!!!"
                                                   ),
-                                                2000
+                                                1000
                                               ),
                                             () =>
                                               update(
@@ -152,7 +153,13 @@ class Demo extends React.Component {
                                           );
                                         }}
                                       >
-                                        Exclaim!
+                                        Exclaim!{" "}
+                                        <External
+                                          name="delayed timer"
+                                          fallback={<span>sync</span>}
+                                        >
+                                          <span>async</span>
+                                        </External>
                                       </button>
                                       <button
                                         data-test={"cancel-mode-" + idx}

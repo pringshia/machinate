@@ -9,6 +9,15 @@ class Transition extends Component {
     return this.props.children || null;
   }
 }
+class External extends Component {
+  render() {
+    return (
+      (this.props.checkBlacklisted(this.props.name)
+        ? this.props.fallback
+        : this.props.children) || null
+    );
+  }
+}
 
 class State extends Component {
   isUnmounted = false;
@@ -23,6 +32,12 @@ class State extends Component {
 
     this.Transition = ({ ...props }) => (
       <Transition transition={this.transientMethods.transition} {...props} />
+    );
+    this.External = ({ ...props }) => (
+      <External
+        checkBlacklisted={context.machine.isTriggerBlacklisted}
+        {...props}
+      />
     );
   }
   isActive = () => {
@@ -64,7 +79,8 @@ class State extends Component {
 
         external: external(this.scoped),
 
-        Transition: this.Transition
+        Transition: this.Transition,
+        External: this.External
       }) || null
     );
   }

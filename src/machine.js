@@ -278,7 +278,8 @@ const createMachine = function(schema, state) {
   const log = msg => emitter.emit("log", msg);
 
   let blacklist = [];
-  const isBlacklisted = name => blacklist.some(regex => !!name.match(regex));
+  const isTriggerBlacklisted = name =>
+    blacklist.some(regex => !!name.match(regex));
 
   const executeScoped = (isActive, transient) => {
     return !transient || isActive();
@@ -301,11 +302,12 @@ const createMachine = function(schema, state) {
     }),
 
     external: fnArgs => (name, promise, fallback = () => {}) =>
-      isBlacklisted(name) ? fallback(fnArgs) : promise(fnArgs),
+      isTriggerBlacklisted(name) ? fallback(fnArgs) : promise(fnArgs),
     setBlacklist: newBlacklist => {
       blacklist = newBlacklist;
     },
     getBlacklist: () => blacklist,
+    isTriggerBlacklisted,
 
     getDomainInfo,
     componentForDomain,

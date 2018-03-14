@@ -14,6 +14,7 @@ import eventemitter from "./emitter";
 const createMachine = function(schema, state) {
   let components = [];
   const submachines = [];
+  let lastForceTime = new Date();
   const emitter = eventemitter();
 
   if (!schema) {
@@ -47,6 +48,7 @@ const createMachine = function(schema, state) {
 
   const setState = nextState => {
     state = nextState;
+    lastForceTime = new Date();
     emitter.emit("force-state", { state });
   };
 
@@ -277,19 +279,40 @@ const createMachine = function(schema, state) {
 
   const log = msg => emitter.emit("log", msg);
 
+  let blacklist = [];
+  const isTriggerBlacklisted = name =>
+    blacklist.some(regex => !!name.match(regex));
+
+  const shouldExecuteScoped = (isActive, transient) => {
+    return !transient || isActive();
+  };
+
   const createdMachine = {
     getState,
     setState,
+    lastForceTime: () => lastForceTime,
 
     transition,
     go,
     update,
 
-    scoped: scope => ({
-      transition: (...args) => transition(scope, ...args),
-      go: (...args) => go(scope, ...args),
-      update: (...args) => update(scope, ...args)
+    scoped: (scope, isActive = () => true, transient = true) => ({
+      transition: (...args) =>
+        shouldExecuteScoped(isActive, transient) && transition(scope, ...args),
+      go: (...args) =>
+        shouldExecuteScoped(isActive, transient) && go(scope, ...args),
+      update: (...args) =>
+        shouldExecuteScoped(isActive, transient) && update(scope, ...args)
     }),
+
+    external: fnArgs => (name, promise, fallback = () => {}) =>
+      isTriggerBlacklisted(name) ? fallback(fnArgs) : promise(fnArgs),
+    setBlacklist: newBlacklist => {
+      blacklist = newBlacklist;
+      setState(getState());
+    },
+    getBlacklist: () => blacklist,
+    isTriggerBlacklisted,
 
     getDomainInfo,
     componentForDomain,

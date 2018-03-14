@@ -1,31 +1,41 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-
-class Transition extends Component {
-  componentWillMount() {
-    this.props.transition(this.props.to, this.props.data);
-  }
-  render() {
-    return this.props.children || null;
-  }
-}
+import Transition from "./Transition";
+import External from "./External";
 
 class State extends Component {
+  isUnmounted = false;
   constructor(props, context) {
     super(props, context);
     context.machine._registerComponentForUpdates(this);
-    const transition = context.machine.transition;
-    this.transition = (...args) =>
-      this.getActiveState() && transition(this.context.scope, ...args);
-    this.Transition = ({ transition, ...props }) => (
-      <Transition transition={this.transition} {...props} />
+
+    this.transientMethods = context.machine.scoped(
+      context.scope,
+      this.isActive
+    );
+    this.persistentMethods = this.context.machine.scoped(
+      context.scope,
+      () => true
+    );
+    this.Transition = ({ ...props }) => (
+      <Transition transition={this.transientMethods.transition} {...props} />
+    );
+    this.External = ({ ...props }) => (
+      <External
+        checkBlacklisted={context.machine.isTriggerBlacklisted}
+        {...props}
+      />
     );
   }
+  isActive = () => {
+    return !this.isUnmounted;
+  };
   resolvedDomainName = () => {
     return this.props.for.split(".")[0];
   };
   componentWillUnmount() {
     this.context.machine._unregisterComponentForUpdates(this);
+    this.isUnmounted = true;
   }
   getActiveState = () => {
     const { machine: { getState } } = this.context;
@@ -39,7 +49,7 @@ class State extends Component {
     return stateInfo;
   };
   render() {
-    const { machine: { transition, go, update }, scope } = this.context;
+    const { machine: { external } } = this.context;
 
     const stateInfo = this.getActiveState();
     if (!stateInfo) return null;
@@ -47,11 +57,15 @@ class State extends Component {
     return (
       this.props.children({
         data: stateInfo.data,
-        transition: this.transition, // only transition if state is active
-        go: (...args) => this.getActiveState() && go(scope, ...args),
-        globalTransition: (...args) => transition(scope, ...args), // always transition
-        update: (...args) => this.getActiveState() && update(scope, ...args),
-        Transition: this.Transition
+        ...this.transientMethods,
+        persistent: {
+          ...this.persistentMethods
+        },
+
+        external: external(this.scoped),
+
+        Transition: this.Transition,
+        External: this.External
       }) || null
     );
   }

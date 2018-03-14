@@ -1,6 +1,13 @@
 import React from "react";
 import { render } from "react-dom";
-import { Machinate, States, State, Submachine, withState } from "machinate";
+import {
+  Machinate,
+  States,
+  State,
+  Submachine,
+  withState,
+  withMachine
+} from "machinate";
 import { Inspector } from "machinate-plugins-inspector";
 
 class Demo extends React.Component {
@@ -40,6 +47,16 @@ class Demo extends React.Component {
   }
   render() {
     const WhenVisibleHoC = withState("Visibility.Show", () => <span>All</span>);
+    const MachineTest = withMachine(({ External, Transition }) => {
+      return (
+        <External
+          name="delayed timer"
+          fallback={<Transition to="Visibility.Hide" />}
+        >
+          <div>Timer enabled</div>
+        </External>
+      );
+    });
     return (
       <Machinate
         scheme={this.scheme}
@@ -53,6 +70,7 @@ class Demo extends React.Component {
           <State for="Visibility.Hide">{() => <span>Hidden</span>}</State>
           <WhenVisibleHoC />
         </h2>
+        <MachineTest />
         <States
           for="Items"
           List={({ data, go }) => (
@@ -103,7 +121,9 @@ class Demo extends React.Component {
                                   data: editedNum,
                                   go,
                                   transition,
-                                  update
+                                  update,
+                                  external,
+                                  External
                                 }) => {
                                   return (
                                     <div className="block edit">
@@ -132,17 +152,32 @@ class Demo extends React.Component {
                                       <button
                                         data-test={"async-clear-" + idx}
                                         onClick={e => {
-                                          setTimeout(
+                                          external(
+                                            "delayed timer",
+                                            () =>
+                                              setTimeout(
+                                                () =>
+                                                  update(
+                                                    "Mode.Edit",
+                                                    data => data + "!!!"
+                                                  ),
+                                                1000
+                                              ),
                                             () =>
                                               update(
                                                 "Mode.Edit",
                                                 data => data + "!!!"
-                                              ),
-                                            1000
+                                              )
                                           );
                                         }}
                                       >
-                                        Exclaim!
+                                        Exclaim!{" "}
+                                        <External
+                                          name="delayed timer"
+                                          fallback={<span>sync</span>}
+                                        >
+                                          <span>async</span>
+                                        </External>
                                       </button>
                                       <button
                                         data-test={"cancel-mode-" + idx}

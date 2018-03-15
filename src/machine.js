@@ -181,7 +181,11 @@ const createMachine = function(schema, state) {
     if (schematicToName !== schematicFromName || payload !== oldState.data) {
       const comps = components.filter(comp => {
         const fullName = _componentFullName(comp);
-        return fullName === resolvedDomainName;
+        return (
+          fullName === resolvedDomainName &&
+          (comp.props.of !== schematicFromName ||
+            comp.props.of === schematicToName)
+        );
       });
       comps.forEach(comp => comp.forceUpdate());
     }
@@ -287,6 +291,13 @@ const createMachine = function(schema, state) {
     return !transient || isActive();
   };
 
+  const invariant = (condition, message) => {
+    if (!condition) {
+      console.error(message);
+    }
+  };
+  const isFunction = v => typeof v === "function";
+
   const createdMachine = {
     getState,
     setState,
@@ -305,8 +316,19 @@ const createMachine = function(schema, state) {
         shouldExecuteScoped(isActive, transient) && update(scope, ...args)
     }),
 
-    external: fnArgs => (name, promise, fallback = () => {}) =>
-      isTriggerBlacklisted(name) ? fallback(fnArgs) : promise(fnArgs),
+    external: fnArgs =>
+      function(name, promise) {
+        const fallback = arguments.length === 3 ? arguments[2] : () => {};
+        invariant(
+          !!promise && isFunction(promise),
+          `The argument provided to the external '${name}' must be a function.`
+        );
+        invariant(
+          isFunction(fallback),
+          `The fallback provided to the external '${name}' must be a function. You may have accidentally triggered the fallback.`
+        );
+        return isTriggerBlacklisted(name) ? fallback(fnArgs) : promise(fnArgs);
+      },
     setBlacklist: newBlacklist => {
       blacklist = newBlacklist;
       setState(getState());

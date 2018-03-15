@@ -12,6 +12,10 @@ class Machinate extends React.Component {
       context && context.machine // pass the parent machine if available
     );
 
+    if (props.configure) {
+      props.configure(machine);
+    }
+
     machine.addListener("force-state", () => {
       this.forced = true;
       this.forceUpdate();
@@ -44,7 +48,8 @@ class Machinate extends React.Component {
 
 Machinate.propTypes = {
   scheme: PropTypes.object.isRequired,
-  initial: PropTypes.object.isRequired
+  initial: PropTypes.object.isRequired,
+  configure: PropTypes.func
 };
 
 Machinate.childContextTypes = {

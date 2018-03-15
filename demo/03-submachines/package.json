@@ -6,7 +6,7 @@
   "keywords": [],
   "main": "src/index.js",
   "dependencies": {
-    "machinate": "~1.0.12",
+    "machinate": "^1.0.12",
     "machinate-plugins-inspector": "^1.0.1",
     "react": "16.2.0",
     "react-dom": "16.2.0",

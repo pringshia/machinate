@@ -31,7 +31,7 @@ class State extends Component {
     return !this.isUnmounted;
   };
   resolvedDomainName = () => {
-    return this.props.for.split(".")[0];
+    return this.props.of.split(".")[0];
   };
   componentWillUnmount() {
     this.context.machine._unregisterComponentForUpdates(this);
@@ -39,7 +39,7 @@ class State extends Component {
   }
   getActiveState = () => {
     const { machine: { getState } } = this.context;
-    const fullName = this.props.for; // maybe pass through helpers/resolveSubDomain here
+    const fullName = this.props.of; // maybe pass through helpers/resolveSubDomain here
     const [resolvedDomainName, stateName] = fullName.split(".");
     const stateInfo = getState(resolvedDomainName);
     if (!stateInfo) return null;

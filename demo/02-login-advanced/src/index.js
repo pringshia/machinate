@@ -46,7 +46,7 @@ class Demo extends React.Component {
         initial={this.initialState}
       >
         <States
-          for="Auth"
+          of="Auth"
           Unknown={(_, machine) => <DetermineAuth {...machine} />}
           Error={errorMsg => <h1>Error: {errorMsg}</h1>}
           LoggedIn={(username, { transition, go }) => (
@@ -55,7 +55,7 @@ class Demo extends React.Component {
               <button onClick={go("Auth.LoggedOut")}>Logout</button>
               <div>
                 <States
-                  for="Display"
+                  of="Display"
                   Settings={() => <h1>Settings</h1>}
                   Dashboard={() => (
                     <div>
@@ -66,7 +66,7 @@ class Demo extends React.Component {
                     <div>
                       <h1>Create Item</h1>
                       <States
-                        for="ItemWizard"
+                        of="ItemWizard"
                         Step1={() => (
                           <div>
                             Step 1{" "}

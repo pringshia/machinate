@@ -15,12 +15,12 @@ class States extends React.Component {
   //   );
   // }
   componentWillMount() {
-    const { for: forDomain } = this.props;
+    const { of: forDomain } = this.props;
     const { machine, scope } = this.context;
     this.DomainState = machine.componentForDomain(scope, forDomain);
   }
   render() {
-    const { for: forDomain, ...props } = this.props;
+    const { of: forDomain, ...props } = this.props;
     const { DomainState } = this;
 
     return <DomainState key={forDomain} forDomain={forDomain} {...props} />;
@@ -28,7 +28,7 @@ class States extends React.Component {
 }
 
 States.propTypes = {
-  for: PropTypes.string.isRequired
+  of: PropTypes.string.isRequired
 };
 
 States.contextTypes = {

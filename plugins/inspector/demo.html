@@ -81,10 +81,10 @@
         <Inspector />
         <h2 data-test="list-header">My List</h2>
         <States
-          for="Items"
+          of="Items"
           List={(data, { go }) => (
             <States
-              for="Visibility"
+              of="Visibility"
               Show={() => {
                 return (
                   <React.Fragment>
@@ -109,10 +109,10 @@
                           initial={this.initialBlockState(num)}
                         >
                           <States
-                            for="Block"
+                            of="Block"
                             Element={(num, { transition }) => {
                               return <States
-                                for="Mode"
+                                of="Mode"
                                 View={() => (
                                   <div className="block">
                                     <div data-test={"text-" + idx}>{num}</div>

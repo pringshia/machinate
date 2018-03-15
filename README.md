@@ -54,7 +54,7 @@ const App = (
         scheme={scheme}
         initial={initialState}>
 
-        <States for="Auth"
+        <States of="Auth"
             LoggedIn={...}
             LoggedOut={...}
             Unknown={...}
@@ -71,7 +71,7 @@ ReactDOM.render(<App />, document.body)
 If you forget to implement a state, `machinate` will warn you:
 
 ```jsx
-<States for="Auth"
+<States of="Auth"
     LoggedIn={...}
     LoggedOut={...}
     // 'Unknown' prop left out intentionally
@@ -98,7 +98,7 @@ Each state prop receives an object with the following parameters:
 Here we use the `go()` function:
 
 ```jsx
-<States for="Auth"
+<States of="Auth"
     LoggedIn={({data}) => <h1>Hi {data.user}</h1>}
     LoggedOut={({ go }) => (
         <button

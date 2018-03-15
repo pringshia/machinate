@@ -8,7 +8,7 @@ const Demo = () => (
     initial={{ Auth: { state: "LoggedIn" } }}
   >
     <States
-      for="Auth"
+      of="Auth"
       LoggedIn={() => <p>Logged in!</p>}
       LoggedOut={() => <p>Logged out!</p>}
       Unknown={() => <p>Unknown (????)</p>}

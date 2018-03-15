@@ -67,15 +67,15 @@ class Demo extends React.Component {
         <Inspector />
         <h2 data-test="list-header">
           My List -{" "}
-          <State for="Visibility.Hide">{() => <span>Hidden</span>}</State>
+          <State of="Visibility.Hide">{() => <span>Hidden</span>}</State>
           <WhenVisibleHoC />
         </h2>
         <MachineTest />
         <States
-          for="Items"
+          of="Items"
           List={({ data, go }) => (
             <States
-              for="Visibility"
+              of="Visibility"
               Show={() => {
                 return (
                   <React.Fragment>
@@ -100,10 +100,10 @@ class Demo extends React.Component {
                           initial={this.initialBlockState(num)}
                         >
                           <States
-                            for="Block"
+                            of="Block"
                             Element={({ data: num, transition }) => (
                               <States
-                                for="Mode"
+                                of="Mode"
                                 View={() => (
                                   <div className="block">
                                     <div data-test={"text-" + idx}>{num}</div>

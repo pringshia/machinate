@@ -182,9 +182,12 @@ const createMachine = function(schema, state) {
       const comps = components.filter(comp => {
         const fullName = _componentFullName(comp);
         return (
-          fullName === resolvedDomainName &&
+          fullName ===
+          resolvedDomainName /*&&
           (comp.props.of !== schematicFromName ||
-            comp.props.of === schematicToName)
+            comp.props.of === schematicToName ||
+            (comp.props.ifInactive && comp.props.of === schematicFromName))
+          */
         );
       });
       comps.forEach(comp => comp.forceUpdate());

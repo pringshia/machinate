@@ -50,9 +50,11 @@ class State extends Component {
   };
   render() {
     const { machine: { external } } = this.context;
+    const ifInactive =
+      (this.props.ifInactive && this.props.ifInactive()) || null;
 
     const stateInfo = this.getActiveState();
-    if (!stateInfo) return null;
+    if (!stateInfo) return ifInactive;
 
     return (
       this.props.children({

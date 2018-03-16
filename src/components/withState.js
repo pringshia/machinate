@@ -3,12 +3,13 @@ import PropTypes from "prop-types";
 import hoistStatics from "hoist-non-react-statics";
 import State from "./State";
 
-const withState = (stateName, Component) => {
+const withState = (stateName, Component, ifInactive) => {
   const C = props => {
     const { wrappedComponentRef, ...remainingProps } = props;
     return (
       <State
         of={stateName}
+        ifInactive={ifInactive}
         children={stateComponentProps => (
           <Component
             {...remainingProps}

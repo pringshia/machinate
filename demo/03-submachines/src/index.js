@@ -46,7 +46,11 @@ class Demo extends React.Component {
     });
   }
   render() {
-    const WhenVisibleHoC = withState("Visibility.Show", () => <span>All</span>);
+    const WhenVisibleHoC = withState(
+      "Visibility.Show",
+      () => <span>!</span>,
+      () => <span>:(</span>
+    );
     const MachineTest = withMachine(({ External, Transition }) => {
       return (
         <External
@@ -67,7 +71,9 @@ class Demo extends React.Component {
         <Inspector />
         <h2 data-test="list-header">
           My List -{" "}
-          <State of="Visibility.Hide">{() => <span>Hidden</span>}</State>
+          <State of="Visibility.Hide" ifInactive={() => <span>All</span>}>
+            {() => <span>Hidden</span>}
+          </State>
           <WhenVisibleHoC />
         </h2>
         <MachineTest />

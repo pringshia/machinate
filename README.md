@@ -1,6 +1,6 @@
 # 🕵️‍♂️ machinate
 
-[![npm](https://img.shields.io/npm/v/machinate.svg)]()
+[![npm](https://img.shields.io/npm/v/machinate.svg)]() [![build](https://api.travis-ci.org/pringshia/machinate.svg?branch=master)]()
 
 #### **⚠️ Not yet ready for production use.**
 

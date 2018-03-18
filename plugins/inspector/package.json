@@ -1,6 +1,6 @@
 {
   "name": "machinate-plugins-inspector",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "get full insight and power over your machinate-powered apps",
   "main": "build/lib.js",
   "author": "Pratik Ringshia",

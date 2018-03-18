@@ -108,13 +108,16 @@ MessageBroker.contextTypes = {
 
 class Inspector extends React.Component {
   instrument = INSTRUMENT;
-  state = {};
+  state = { leftSide: false };
   postToInspector = (type, data) => {
     const frame = ReactDOM.findDOMNode(this.iframe);
     frame.contentWindow.postMessage(
       { source: "machinate-to-inspector", type, data },
       "*"
     );
+  };
+  toggleSide = () => {
+    this.setState({ leftSide: !this.state.leftSide });
   };
   handleRequestInitialState = () => {
     const machine = this.context && this.context.machine;
@@ -166,9 +169,10 @@ class Inspector extends React.Component {
         style={{
           position: "fixed",
           top: "0",
-          right: "0",
+          ...(this.state.leftSide ? { left: 0 } : { right: 0 }),
           height: "100vh",
-          width: "300px" // TODO: make resizable
+          width: "300px", // TODO: make resizable
+          zIndex: 999
         }}
       >
         <Frame
@@ -182,7 +186,7 @@ class Inspector extends React.Component {
             <style>{`
             * { box-sizing: border-box; }
             html, body {margin:0; padding: 0; font-family: Arial, serif; }
-            body { background-color: #efefef; color: #3f3f3f; border-left: 1px solid #aaaaaa; min-height: 100vh; }
+            body { background-color: #efefef; color: #3f3f3f; border-left: 1px solid #aaaaaa; border-right: 1px solid #aaaaaa; min-height: 100vh; }
             .container { padding: 20px 15px; font-size: 12px; }
             html { height: 100vh; }
             h1 { font-size: 14px; margin: 0; padding: 10px 15px; background-color: #d0d0d0; color: #333; border-bottom: 1px solid #777; }
@@ -201,7 +205,10 @@ class Inspector extends React.Component {
               <MessageBroker onMessage={handleMessage}>
                 {({ post }) => (
                   <div>
-                    <h1 style={{ marginTop: "0px" }}>Inspector</h1>
+                    <h1 style={{ marginTop: "0px" }}>
+                      Inspector -{" "}
+                      <span onClick={this.toggleSide}>Toggle side</span>
+                    </h1>
                     <div className="container">
                       <div className="module">
                         <h3>WATCH</h3>

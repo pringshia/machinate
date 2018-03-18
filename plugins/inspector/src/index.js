@@ -40,7 +40,11 @@ class InspectorState extends React.Component {
   };
   constructor(props) {
     super(props);
-    this.state.appState = props.initial;
+    const machineState = props.onRequestInitialState();
+    this.state.appState = machineState;
+    this.state.transitionsList = [
+      { fromName: "", toName: "INITIAL", state: machineState }
+    ];
   }
   handleMessage = message => {
     if (message.source === "machinate-to-inspector") {
@@ -111,6 +115,13 @@ class Inspector extends React.Component {
       { source: "machinate-to-inspector", type, data },
       "*"
     );
+  };
+  handleRequestInitialState = () => {
+    const machine = this.context && this.context.machine;
+    if (window && machine) {
+      return machine.getState();
+    }
+    return null;
   };
   componentDidMount() {
     const machine = this.context && this.context.machine;
@@ -183,7 +194,9 @@ class Inspector extends React.Component {
             `}</style>
           }
         >
-          <InspectorState initial={this.state.initialState}>
+          <InspectorState
+            onRequestInitialState={this.handleRequestInitialState}
+          >
             {({ appState, transitionsList, handleMessage }) => (
               <MessageBroker onMessage={handleMessage}>
                 {({ post }) => (

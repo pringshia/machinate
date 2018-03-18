@@ -17,8 +17,12 @@ class State extends Component {
       context.scope,
       () => true
     );
-    this.Transition = ({ ...props }) => (
-      <Transition transition={this.transientMethods.transition} {...props} />
+    this.Transition = ({ noKey, ...props }) => (
+      <Transition
+        {...{ key: noKey ? undefined : props.to }}
+        transition={this.transientMethods.transition}
+        {...props}
+      />
     );
     this.External = ({ ...props }) => (
       <External

@@ -12,9 +12,14 @@ const withMachine = Component => {
         context.scope,
         () => true
       );
-      this.Transition = ({ ...props }) => (
-        <Transition transition={this.persistentMethods.transition} {...props} />
+      this.Transition = ({ noKey, ...props }) => (
+        <Transition
+          {...{ key: noKey ? undefined : props.to }}
+          transition={this.persistentMethods.transition}
+          {...props}
+        />
       );
+
       this.External = ({ ...props }) => (
         <External
           checkBlacklisted={context.machine.isTriggerBlacklisted}

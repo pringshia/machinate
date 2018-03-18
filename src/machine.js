@@ -190,7 +190,11 @@ const createMachine = function(schema, state) {
           */
         );
       });
-      comps.forEach(comp => comp.forceUpdate());
+      comps.forEach(
+        comp =>
+          (comp.isUnmounted === undefined || comp.isUnmounted === false) &&
+          comp.forceUpdate()
+      );
     }
 
     if (isTriggered) {

@@ -1,3 +1,6 @@
+import React from "react";
+import Transition from "./components/Transition";
+
 export const expandSchemeSyntax = scheme =>
   Object.entries(scheme).reduce((obj, [domainName, value]) => {
     if (Array.isArray(value)) {
@@ -100,3 +103,13 @@ export const isTransitionable = (scope, scheme, currentState, toState) => {
     );
   });
 };
+
+export function createTransitionComponent(transitionMethod) {
+  return ({ noKey, ...props }) => (
+    <Transition
+      {...{ key: noKey ? undefined : props.to }}
+      transition={transitionMethod}
+      {...props}
+    />
+  );
+}

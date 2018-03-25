@@ -1,8 +1,8 @@
 import React from "react";
 import PropTypes from "prop-types";
-import Transition from "./Transition";
 import External from "./External";
 import hoistStatics from "hoist-non-react-statics";
+import { createTransitionComponent } from "../helpers";
 
 const withMachine = Component => {
   class C extends React.Component {
@@ -12,12 +12,8 @@ const withMachine = Component => {
         context.scope,
         () => true
       );
-      this.Transition = ({ noKey, ...props }) => (
-        <Transition
-          {...{ key: noKey ? undefined : props.to }}
-          transition={this.persistentMethods.transition}
-          {...props}
-        />
+      this.Transition = createTransitionComponent(
+        this.persistentMethods.transition
       );
 
       this.External = ({ ...props }) => (

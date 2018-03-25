@@ -5,6 +5,7 @@ import withState from "./components/withState";
 import withMachine from "./components/withMachine";
 import Submachine from "./components/Submachine";
 import IsActive from "./components/IsActive";
+import MachineConsumer from "./components/MachineConsumer";
 
 import { isTransitionable, createMachine } from "./machine";
 
@@ -17,5 +18,6 @@ export {
   isTransitionable,
   createMachine,
   withState,
-  withMachine
+  withMachine,
+  MachineConsumer
 };

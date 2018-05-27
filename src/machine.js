@@ -162,7 +162,7 @@ const createMachine = function(schema, state) {
     });
 
     optimizedDomainsToAdd.forEach(toAdd => {
-      console.log("triggering " + toAdd.domain + "." + toAdd.state);
+      // console.log("triggering " + toAdd.domain + "." + toAdd.state);
       // ponder: we are recursing before updating the state below, is that ok?
       emitter.emit("triggered-add", { ...toAdd });
       _transition(prefixArray, toAdd.domain, toAdd.state, undefined, true);

@@ -132,9 +132,10 @@ const createMachine = function(schema, state) {
       .getDependents(state, schematicToName)
       .map(node => ({ domain: node.f, state: node.ts[0] && node.ts[0].name }));
 
-    const dependentDomainsToRemove = depGraph
-      .getDependents(state, schematicFromName)
-      .map(n => n.f);
+    const dependentDomainsToRemove =
+      schematicToName === schematicFromName
+        ? [] // if there's no real transition, let's not remove dependents
+        : depGraph.getDependents(state, schematicFromName).map(n => n.f);
 
     const optimizedDomainsToRemove = dependentDomainsToRemove
       .filter(domain => {
@@ -171,6 +172,7 @@ const createMachine = function(schema, state) {
       Object.entries(state).reduce((obj, [key, value]) => {
         if (!optimizedDomainsToRemove.includes(key)) {
           obj[key] = value;
+          return obj;
         }
         emitter.emit("triggered-remove", { domain: key });
         return obj;

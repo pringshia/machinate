@@ -6,7 +6,8 @@ import {
   State,
   Submachine,
   withState,
-  withMachine
+  withMachine,
+  MachineConsumer
 } from "machinate";
 import { Inspector } from "machinate-plugins-inspector";
 
@@ -61,6 +62,20 @@ class Demo extends React.Component {
         </External>
       );
     });
+    const MachineTest2 = () => (
+      <MachineConsumer>
+        {({ External, Transition }) => {
+          return (
+            <External
+              name="delayed timer"
+              fallback={<Transition to="Visibility.Hide" />}
+            >
+              <div>Timer enabled</div>
+            </External>
+          );
+        }}
+      </MachineConsumer>
+    );
     return (
       <Machinate
         scheme={this.scheme}
@@ -77,6 +92,7 @@ class Demo extends React.Component {
           <WhenVisibleHoC />
         </h2>
         <MachineTest />
+        <MachineTest2 />
         <States
           of="Items"
           List={({ data, go }) => (

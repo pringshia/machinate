@@ -1,7 +1,7 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-import Transition from "./Transition";
 import External from "./External";
+import { createTransitionComponent } from "../helpers";
 
 class State extends Component {
   isUnmounted = false;
@@ -17,9 +17,10 @@ class State extends Component {
       context.scope,
       () => true
     );
-    this.Transition = ({ ...props }) => (
-      <Transition transition={this.transientMethods.transition} {...props} />
+    this.Transition = createTransitionComponent(
+      this.transientMethods.transition
     );
+
     this.External = ({ ...props }) => (
       <External
         checkBlacklisted={context.machine.isTriggerBlacklisted}

@@ -55,6 +55,8 @@
     "webpack": "^3.11.0"
   },
   "jest": {
-    "setupTestFrameworkScriptFile": "<rootDir>/test/setup.js"
+    "setupTestFrameworkScriptFile": "<rootDir>/test/setup.js",
+    "verbose": true,
+    "testURL": "http://localhost/"
   }
 }

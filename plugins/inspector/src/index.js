@@ -4,7 +4,7 @@ import PropTypes from "prop-types";
 import ReactDOM from "react-dom";
 import { transitionsTransform } from "./transforms";
 
-const INSTRUMENT = false;
+const INSTRUMENT = true;
 
 // const transitionsTransform = list => {
 //   const val = list.reduce(
@@ -36,7 +36,8 @@ class InspectorState extends React.Component {
   instrument = INSTRUMENT;
   state = {
     appState: null,
-    transitionsList: []
+    transitionsList: [],
+    blockAllExternals: false
   };
   constructor(props) {
     super(props);
@@ -82,6 +83,10 @@ class MessageBroker extends React.Component {
     }
   };
 
+  forceStateChange = state => () => {
+    this.postFromInspector("force-state", state);
+  };
+
   componentDidMount() {
     this.window = this.context && this.context.window;
 
@@ -93,10 +98,14 @@ class MessageBroker extends React.Component {
       });
     }
   }
+
   render() {
     return (
       (this.props.children &&
-        this.props.children({ post: this.postFromInspector })) ||
+        this.props.children({
+          post: this.postFromInspector,
+          forceStateChange: this.forceStateChange
+        })) ||
       null
     );
   }
@@ -143,6 +152,15 @@ class Inspector extends React.Component {
       machine.addListener("force-state", (type, data) =>
         this.postToInspector("state", data.state)
       );
+      machine.addListener("blacklist-set", (type, data) =>
+        this.postToInspector("blacklist-set", data)
+      );
+      machine.addListener("external-blocked", (type, data) =>
+        this.postToInspector("external-blocked", data)
+      );
+      machine.addListener("external-executed", (type, data) =>
+        this.postToInspector("external-executed", data)
+      );
 
       machine.addListener("log", (type, data) => console.log(data));
 
@@ -156,6 +174,7 @@ class Inspector extends React.Component {
               e.data.data.payload
             );
           } else if (e.data.type === "force-state") {
+            machine.setBlacklist([".*"]);
             machine.setState(e.data.data);
           }
         }
@@ -203,7 +222,7 @@ class Inspector extends React.Component {
           >
             {({ appState, transitionsList, handleMessage }) => (
               <MessageBroker onMessage={handleMessage}>
-                {({ post }) => (
+                {({ post, forceStateChange }) => (
                   <div>
                     <h1 style={{ marginTop: "0px" }}>
                       Inspector -{" "}
@@ -238,8 +257,7 @@ class Inspector extends React.Component {
                                     <em
                                       className="pointer"
                                       key={idx + "-" + idx2}
-                                      onClick={(state => () =>
-                                        post("force-state", state))(sub.state)}
+                                      onClick={forceStateChange(sub.state)}
                                     >
                                       •{" "}
                                     </em>
@@ -249,8 +267,7 @@ class Inspector extends React.Component {
                                 <div
                                   className="transition pointer"
                                   key={idx}
-                                  onClick={(state => () =>
-                                    post("force-state", state))(t.state)}
+                                  onClick={forceStateChange(t.state)}
                                 >
                                   {t.fromName} ➡ {t.toName}{" "}
                                   <em>{t.payload ? "with payload" : ""}</em>

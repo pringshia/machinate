@@ -235,6 +235,15 @@ const createMachine = function(schema, state) {
     }
   };
 
+  const query = (scope, notation) => {
+    const [domainName] = notation.split(".");
+    const stateInfo = getState(
+      resolveSubdomain(state, scope, domainName).fullName
+    );
+
+    return stateInfo.data;
+  };
+
   const _registerComponentForUpdates = ref => {
     components.push(ref);
   };
@@ -315,6 +324,7 @@ const createMachine = function(schema, state) {
     transition,
     go,
     update,
+    query,
 
     scoped: (scope, isActive = () => true, transient = true) => ({
       transition: (...args) =>
@@ -322,7 +332,9 @@ const createMachine = function(schema, state) {
       go: (...args) =>
         shouldExecuteScoped(isActive, transient) && go(scope, ...args),
       update: (...args) =>
-        shouldExecuteScoped(isActive, transient) && update(scope, ...args)
+        shouldExecuteScoped(isActive, transient) && update(scope, ...args),
+      query: (...args) =>
+        shouldExecuteScoped(isActive, transient) && query(scope, ...args)
     }),
 
     external: fnArgs =>
@@ -336,10 +348,21 @@ const createMachine = function(schema, state) {
           isFunction(fallback),
           `The fallback provided to the external '${name}' must be a function. You may have accidentally triggered the fallback.`
         );
-        return isTriggerBlacklisted(name) ? fallback(fnArgs) : promise(fnArgs);
+        if (isTriggerBlacklisted(name)) {
+          emitter.emit("external-blocked", {
+            externalName: name,
+            blockedBy: blacklist.filter(regex => !!name.match(regex))
+          });
+          return fallback(fnArgs);
+        } else {
+          emitter.emit("external-executed", { externalName: name });
+          return promise(fnArgs);
+        }
+        // return isTriggerBlacklisted(name) ? fallback(fnArgs) : promise(fnArgs);
       },
     setBlacklist: newBlacklist => {
       blacklist = newBlacklist;
+      emitter.emit("blacklist-set", newBlacklist);
       setState(getState());
     },
     getBlacklist: () => blacklist,

@@ -18,7 +18,12 @@ class MachineConsumer extends Component {
       />
     );
 
-    this.machineProps = { ...this.persistentMethods, Transition, External };
+    this.machineProps = {
+      ...this.persistentMethods,
+      Transition,
+      External,
+      external: context.machine.external(context.scope)
+    };
   }
   render() {
     return this.props.children({ ...this.machineProps });

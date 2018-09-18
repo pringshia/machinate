@@ -37,7 +37,9 @@ class InspectorState extends React.Component {
   state = {
     appState: null,
     transitionsList: [],
-    blockAllExternals: false
+    blockAllExternals: false,
+    externalsList: [],
+    blacklist: []
   };
   constructor(props) {
     super(props);
@@ -57,6 +59,14 @@ class InspectorState extends React.Component {
         this.setState({
           transitionsList: [...this.state.transitionsList, message.data]
         });
+      }
+      if (message.type === "external-executed") {
+        this.setState({
+          externalsList: [...this.state.externalsList, message.data]
+        });
+      }
+      if (message.type === "blacklist-set") {
+        this.setState({ blacklist: message.data });
       }
     }
   };
@@ -87,6 +97,13 @@ class MessageBroker extends React.Component {
     this.postFromInspector("force-state", state);
   };
 
+  removeFromBlacklist = (blacklist, regexToRemove) => () => {
+    this.postFromInspector(
+      "set-blacklist",
+      blacklist.filter(regex => regex !== regexToRemove)
+    );
+  };
+
   componentDidMount() {
     this.window = this.context && this.context.window;
 
@@ -104,7 +121,8 @@ class MessageBroker extends React.Component {
       (this.props.children &&
         this.props.children({
           post: this.postFromInspector,
-          forceStateChange: this.forceStateChange
+          forceStateChange: this.forceStateChange,
+          removeFromBlacklist: this.removeFromBlacklist
         })) ||
       null
     );
@@ -176,6 +194,8 @@ class Inspector extends React.Component {
           } else if (e.data.type === "force-state") {
             machine.setBlacklist([".*"]);
             machine.setState(e.data.data);
+          } else if (e.data.type === "set-blacklist") {
+            machine.setBlacklist(e.data.data);
           }
         }
       });
@@ -220,9 +240,15 @@ class Inspector extends React.Component {
           <InspectorState
             onRequestInitialState={this.handleRequestInitialState}
           >
-            {({ appState, transitionsList, handleMessage }) => (
+            {({
+              appState,
+              transitionsList,
+              handleMessage,
+              externalsList,
+              blacklist
+            }) => (
               <MessageBroker onMessage={handleMessage}>
-                {({ post, forceStateChange }) => (
+                {({ post, forceStateChange, removeFromBlacklist }) => (
                   <div>
                     <h1 style={{ marginTop: "0px" }}>
                       Inspector -{" "}
@@ -230,7 +256,21 @@ class Inspector extends React.Component {
                     </h1>
                     <div className="container">
                       <div className="module">
-                        <h3>WATCH</h3>
+                        <h3>EXTERNALS</h3>
+                        {externalsList.map((external, idx) => (
+                          <div key={idx}>{external.externalName}</div>
+                        ))}
+                      </div>
+                      <h3>BLACKLISTED EXTERNALS</h3>
+                      <div className="module">
+                        {blacklist.map((regex, idx) => (
+                          <div
+                            key={idx}
+                            onClick={removeFromBlacklist(blacklist, regex)}
+                          >
+                            {regex}
+                          </div>
+                        ))}
                       </div>
                       <div className="module">
                         <h3>STATE</h3>

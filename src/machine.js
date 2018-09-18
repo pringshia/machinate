@@ -195,7 +195,7 @@ const createMachine = function(schema, state) {
       comps.forEach(
         comp =>
           (comp.isUnmounted === undefined || comp.isUnmounted === false) &&
-          setTimeout(() => comp.forceUpdate(), 0)
+          comp.forceUpdate()
       );
     }
 

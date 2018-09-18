@@ -22,8 +22,15 @@ class States extends React.Component {
   render() {
     const { of: forDomain, ...props } = this.props;
     const { DomainState } = this;
+    const { machine } = this.context;
 
-    return <DomainState key={forDomain} forDomain={forDomain} {...props} />;
+    return (
+      <DomainState
+        key={forDomain + "-" + machine.lastForceTime()}
+        forDomain={forDomain}
+        {...props}
+      />
+    );
   }
 }
 

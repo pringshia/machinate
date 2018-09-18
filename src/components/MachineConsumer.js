@@ -22,7 +22,8 @@ class MachineConsumer extends Component {
       ...this.persistentMethods,
       Transition,
       External,
-      external: context.machine.external(context.scope)
+      external: context.machine.external(context.scope),
+      lastForceTime: context.machine.lastForceTime
     };
   }
   render() {

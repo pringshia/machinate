@@ -55,7 +55,7 @@ class InspectorState extends React.Component {
   handleMessage = message => {
     if (message.source === "machinate-to-inspector") {
       this.instrument && console.log("received from parent: ", message);
-      if (message.type === "state" && message.data.forcedBy !== "blacklist") {
+      if (message.type === "state") {
         this.setState({ appState: message.data.state });
       }
       if (message.type === "transition") {
@@ -175,12 +175,14 @@ class Inspector extends React.Component {
           forcedBy: data.forcedBy
         })
       );
-      machine.addListener("force-state", (type, data) =>
+      machine.addListener("force-state", (type, data) => {
+        if (data.forcedBy === "blacklist") return;
+
         this.postToInspector("state", {
           state: data.state,
           forcedBy: data.forcedBy
-        })
-      );
+        });
+      });
       machine.addListener("blacklist-set", (type, data) =>
         this.postToInspector("blacklist-set", data)
       );

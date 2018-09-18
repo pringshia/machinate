@@ -3,8 +3,11 @@ import Frame from "react-frame-component";
 import PropTypes from "prop-types";
 import ReactDOM from "react-dom";
 import { transitionsTransform } from "./transforms";
+import ReactJson from "react-json-view";
+import c from "classnames";
 
 const INSTRUMENT = true;
+const GLOBAL_REGEX_BLACKLIST = "^(?!router).*";
 
 // const transitionsTransform = list => {
 //   const val = list.reduce(
@@ -39,7 +42,9 @@ class InspectorState extends React.Component {
     transitionsList: [],
     blockAllExternals: false,
     externalsList: [],
-    blacklist: []
+    blockedExternalsList: [],
+    blacklist: [],
+    scheme: {}
   };
   constructor(props) {
     super(props);
@@ -49,7 +54,8 @@ class InspectorState extends React.Component {
       { fromName: "", toName: "INITIAL", state: machineState }
     ];
   }
-  clearExternalsList = () => this.setState({ externalsList: [] });
+  clearExternalsList = () =>
+    this.setState({ externalsList: [], blockedExternalsList: [] });
   clearTransitionsList = () => this.setState({ transitionsList: [] });
 
   handleMessage = message => {
@@ -68,8 +74,20 @@ class InspectorState extends React.Component {
           externalsList: [...this.state.externalsList, message.data]
         });
       }
+      if (message.type === "external-blocked") {
+        this.setState({
+          blockedExternalsList: [
+            ...this.state.blockedExternalsList,
+            message.data
+          ]
+        });
+      }
+
       if (message.type === "blacklist-set") {
         this.setState({ blacklist: message.data });
+      }
+      if (message.type === "init-scheme") {
+        this.setState({ scheme: message.data });
       }
     }
   };
@@ -109,6 +127,47 @@ class MessageBroker extends React.Component {
     );
   };
 
+  hasHadAPayloadHistorically = (domainName, stateName, transitionsList) => {
+    const toStateName = domainName + "." + stateName;
+    const filtered = transitionsList.filter(
+      t => t.toName === toStateName && !!t.payload
+    );
+
+    return filtered.length > 0;
+  };
+
+  transitionTo = (
+    domainName,
+    stateName,
+    hasPayload = false,
+    transitionsList
+  ) => e => {
+    e.stopPropagation();
+    if (hasPayload) {
+      const toStateName = domainName + "." + stateName;
+      const filtered = transitionsList.filter(
+        t => t.toName === toStateName && !!t.payload
+      );
+      const defaultPayload =
+        filtered.length === 0
+          ? undefined
+          : filtered[filtered.length - 1].payload;
+
+      this.postFromInspector("invoke-transition", {
+        state: toStateName,
+        payload:
+          JSON.parse(
+            prompt("Input the payload: ", JSON.stringify(defaultPayload))
+          ) || undefined
+      });
+    } else {
+      this.postFromInspector("invoke-transition", {
+        state: domainName + "." + stateName,
+        payload: undefined
+      });
+    }
+  };
+
   componentDidMount() {
     this.window = this.context && this.context.window;
 
@@ -127,7 +186,9 @@ class MessageBroker extends React.Component {
         this.props.children({
           post: this.postFromInspector,
           forceStateChange: this.forceStateChange,
-          removeFromBlacklist: this.removeFromBlacklist
+          removeFromBlacklist: this.removeFromBlacklist,
+          transitionTo: this.transitionTo,
+          hasHadAPayloadHistorically: this.hasHadAPayloadHistorically
         })) ||
       null
     );
@@ -163,18 +224,23 @@ class Inspector extends React.Component {
 
     if (window && machine) {
       this.setState({ initialState: machine.getState() });
-      // console.log(machine.getState());
-      // this.postToInspector("init-state", machine.getState());
+
+      // TODO: Only send this over once on initialization.
+      // Figure out how to detect initialization. This is NOT efficient
+      // and very spammy.
+      machine.addListener("set-state", (type, data) => {
+        this.postToInspector("init-scheme", machine.getDomainInfo());
+      });
 
       machine.addListener("transition", (type, data) =>
         this.postToInspector("transition", data)
       );
-      machine.addListener("set-state", (type, data) =>
+      machine.addListener("set-state", (type, data) => {
         this.postToInspector("state", {
           state: data.state,
           forcedBy: data.forcedBy
-        })
-      );
+        });
+      });
       machine.addListener("force-state", (type, data) => {
         if (data.forcedBy === "blacklist") return;
 
@@ -205,10 +271,13 @@ class Inspector extends React.Component {
               e.data.data.payload
             );
           } else if (e.data.type === "force-state") {
-            machine.setBlacklist([".*"]);
+            machine.setBlacklist([GLOBAL_REGEX_BLACKLIST]);
             machine.setState(e.data.data);
           } else if (e.data.type === "set-blacklist") {
             machine.setBlacklist(e.data.data);
+          } else if (e.data.type === "invoke-transition") {
+            machine.setBlacklist([GLOBAL_REGEX_BLACKLIST]);
+            machine.transition([], e.data.data.state, e.data.data.payload);
           }
         }
       });
@@ -247,6 +316,8 @@ class Inspector extends React.Component {
             .module { margin-bottom: 30px; }
             .transition { margin-bottom: 3px; }
             .pointer { cursor: pointer; }
+            .state-name.active { background-color: #fffa18; font-weight: bold; }
+            .state-name { cursor: pointer; padding: 1px 3px; background-color: #ddd; border-radius: 2px; margin-right: 3px }
             `}</style>
           }
         >
@@ -255,19 +326,49 @@ class Inspector extends React.Component {
           >
             {({
               appState,
+              scheme,
               transitionsList,
               clearTransitionsList,
               handleMessage,
               externalsList,
+              blockedExternalsList,
               clearExternalsList,
               blacklist
             }) => (
               <MessageBroker onMessage={handleMessage}>
-                {({ post, forceStateChange, removeFromBlacklist }) => (
+                {({
+                  post,
+                  forceStateChange,
+                  removeFromBlacklist,
+                  transitionTo,
+                  hasHadAPayloadHistorically
+                }) => (
                   <div>
                     <h1 style={{ marginTop: "0px" }}>
+                      <span role="img" aria-label="inspector logo">
+                        🔍
+                      </span>{" "}
                       Inspector -{" "}
                       <span onClick={this.toggleSide}>Toggle side</span>
+                      {blacklist.some(b => b === GLOBAL_REGEX_BLACKLIST) && (
+                        <span
+                          role="img"
+                          aria-label="play button"
+                          style={{
+                            float: "right",
+                            fontSize: 17,
+                            position: "relative",
+                            bottom: 5,
+                            cursor: "pointer"
+                          }}
+                          onClick={removeFromBlacklist(
+                            blacklist,
+                            GLOBAL_REGEX_BLACKLIST
+                          )}
+                        >
+                          ▶️
+                        </span>
+                      )}
                     </h1>
                     <div className="container">
                       <div className="module">
@@ -284,9 +385,20 @@ class Inspector extends React.Component {
                             Clear
                           </span>
                         </h3>
-                        {externalsList.map((external, idx) => (
-                          <div key={idx}>{external.externalName}</div>
-                        ))}
+                        <div style={{ display: "flex" }}>
+                          <div style={{ flex: 1 }}>
+                            <h4 style={{ margin: "3px 0 5px" }}>Executed</h4>
+                            {externalsList.map((external, idx) => (
+                              <div key={idx}>{external.externalName}</div>
+                            ))}
+                          </div>
+                          <div style={{ flex: 1 }}>
+                            <h4 style={{ margin: "3px 0 5px" }}>Blocked</h4>
+                            {blockedExternalsList.map((external, idx) => (
+                              <div key={idx}>{external.externalName}</div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
                       <h3>BLACKLISTED EXTERNALS</h3>
                       <div className="module">
@@ -304,10 +416,66 @@ class Inspector extends React.Component {
                         <div style={{ height: "200px", overflowY: "scroll" }}>
                           {appState
                             ? Object.keys(appState).map(domain => (
-                                <div key={domain}>
+                                <div
+                                  key={domain}
+                                  style={{ marginTop: 3, marginBottom: 5 }}
+                                >
                                   {domain}:{" "}
-                                  <strong>{appState[domain].state}</strong>{" "}
-                                  {JSON.stringify(appState[domain].data)}
+                                  {/* <strong className="state-name active">
+                                    {appState[domain].state}
+                                  </strong>{" "} */}
+                                  {scheme &&
+                                    scheme[domain] &&
+                                    scheme[domain].states.map(state => (
+                                      <span
+                                        key={state}
+                                        className={c("state-name", {
+                                          active:
+                                            state === appState[domain].state
+                                        })}
+                                        onClick={transitionTo(
+                                          domain,
+                                          state,
+                                          false,
+                                          transitionsList
+                                        )}
+                                      >
+                                        {state}
+                                        &nbsp;
+                                        <span
+                                          role="img"
+                                          aria-label="payload button"
+                                          onClick={transitionTo(
+                                            domain,
+                                            state,
+                                            true,
+                                            transitionsList
+                                          )}
+                                        >
+                                          {hasHadAPayloadHistorically(
+                                            domain,
+                                            state,
+                                            transitionsList
+                                          )
+                                            ? "📦"
+                                            : "🗑"}
+                                        </span>
+                                      </span>
+                                    ))}
+                                  {appState[domain].data && (
+                                    <div style={{ marginBottom: 10 }}>
+                                      <ReactJson
+                                        name={false}
+                                        src={appState[domain].data}
+                                        displayDataTypes={false}
+                                        indentWidth={1}
+                                        enableClipboard={false}
+                                      />
+                                    </div>
+                                  )}
+                                  {/* <code>
+                                    {JSON.stringify(appState[domain].data)}
+                                  </code> */}
                                 </div>
                               ))
                             : "Undetected"}

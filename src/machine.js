@@ -36,20 +36,20 @@ const createMachine = function(schema, state) {
     domainName ? schema[domainName] : schema;
 
   const getState = domainName => {
-    return JSON.parse(
-      JSON.stringify(domainName ? state[domainName] || null : state)
-    );
+    return clone(domainName ? state[domainName] || null : state);
   };
+
+  const clone = val => JSON.parse(JSON.stringify(val));
 
   const _setState = nextState => {
     state = nextState;
     emitter.emit("set-state", { state });
   };
 
-  const setState = nextState => {
+  const setState = (nextState, forcedBy = undefined) => {
     state = nextState;
     lastForceTime = new Date();
-    emitter.emit("force-state", { state });
+    emitter.emit("force-state", { state, forcedBy });
   };
 
   const _transition = (
@@ -363,7 +363,7 @@ const createMachine = function(schema, state) {
     setBlacklist: newBlacklist => {
       blacklist = newBlacklist;
       emitter.emit("blacklist-set", newBlacklist);
-      setState(getState());
+      setState(getState(), "blacklist");
     },
     getBlacklist: () => blacklist,
     isTriggerBlacklisted,

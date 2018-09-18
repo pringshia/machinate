@@ -49,11 +49,14 @@ class InspectorState extends React.Component {
       { fromName: "", toName: "INITIAL", state: machineState }
     ];
   }
+  clearExternalsList = () => this.setState({ externalsList: [] });
+  clearTransitionsList = () => this.setState({ transitionsList: [] });
+
   handleMessage = message => {
     if (message.source === "machinate-to-inspector") {
       this.instrument && console.log("received from parent: ", message);
-      if (message.type === "state") {
-        this.setState({ appState: message.data });
+      if (message.type === "state" && message.data.forcedBy !== "blacklist") {
+        this.setState({ appState: message.data.state });
       }
       if (message.type === "transition") {
         this.setState({
@@ -75,7 +78,9 @@ class InspectorState extends React.Component {
       this.props.children &&
       this.props.children({
         ...this.state,
-        handleMessage: this.handleMessage.bind(this)
+        handleMessage: this.handleMessage.bind(this),
+        clearExternalsList: this.clearExternalsList.bind(this),
+        clearTransitionsList: this.clearTransitionsList.bind(this)
       })
     );
   }
@@ -165,10 +170,16 @@ class Inspector extends React.Component {
         this.postToInspector("transition", data)
       );
       machine.addListener("set-state", (type, data) =>
-        this.postToInspector("state", data.state)
+        this.postToInspector("state", {
+          state: data.state,
+          forcedBy: data.forcedBy
+        })
       );
       machine.addListener("force-state", (type, data) =>
-        this.postToInspector("state", data.state)
+        this.postToInspector("state", {
+          state: data.state,
+          forcedBy: data.forcedBy
+        })
       );
       machine.addListener("blacklist-set", (type, data) =>
         this.postToInspector("blacklist-set", data)
@@ -243,8 +254,10 @@ class Inspector extends React.Component {
             {({
               appState,
               transitionsList,
+              clearTransitionsList,
               handleMessage,
               externalsList,
+              clearExternalsList,
               blacklist
             }) => (
               <MessageBroker onMessage={handleMessage}>
@@ -256,7 +269,19 @@ class Inspector extends React.Component {
                     </h1>
                     <div className="container">
                       <div className="module">
-                        <h3>EXTERNALS</h3>
+                        <h3>
+                          EXTERNALS
+                          <span
+                            style={{
+                              marginLeft: 10,
+                              fontSize: 8,
+                              cursor: "pointer"
+                            }}
+                            onClick={clearExternalsList}
+                          >
+                            Clear
+                          </span>
+                        </h3>
                         {externalsList.map((external, idx) => (
                           <div key={idx}>{external.externalName}</div>
                         ))}
@@ -278,7 +303,8 @@ class Inspector extends React.Component {
                           {appState
                             ? Object.keys(appState).map(domain => (
                                 <div key={domain}>
-                                  {domain}: {appState[domain].state}{" "}
+                                  {domain}:{" "}
+                                  <strong>{appState[domain].state}</strong>{" "}
                                   {JSON.stringify(appState[domain].data)}
                                 </div>
                               ))
@@ -286,7 +312,19 @@ class Inspector extends React.Component {
                         </div>
                       </div>
                       <div className="module">
-                        <h3>TRANSITIONS</h3>
+                        <h3>
+                          TRANSITIONS
+                          <span
+                            style={{
+                              marginLeft: 10,
+                              fontSize: 8,
+                              cursor: "pointer"
+                            }}
+                            onClick={clearTransitionsList}
+                          >
+                            Clear
+                          </span>
+                        </h3>
                         <div>
                           {transitionsTransform(transitionsList).list.map(
                             (t, idx) =>

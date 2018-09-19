@@ -326,6 +326,8 @@ const createMachine = function(schema, state) {
     update,
     query,
 
+    emitter,
+
     scoped: (scope, isActive = () => true, transient = true) => ({
       transition: (...args) =>
         shouldExecuteScoped(isActive, transient) && transition(scope, ...args),
@@ -363,7 +365,6 @@ const createMachine = function(schema, state) {
     setBlacklist: newBlacklist => {
       blacklist = newBlacklist;
       emitter.emit("blacklist-set", newBlacklist);
-      setState(getState(), "blacklist");
     },
     getBlacklist: () => blacklist,
     isTriggerBlacklisted,

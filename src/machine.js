@@ -365,6 +365,8 @@ const createMachine = function(schema, state) {
     setBlacklist: newBlacklist => {
       blacklist = newBlacklist;
       emitter.emit("blacklist-set", newBlacklist);
+      lastForceTime = new Date();
+      components.forEach(comp => comp.forceUpdate());
     },
     getBlacklist: () => blacklist,
     isTriggerBlacklisted,

@@ -71,14 +71,14 @@ class InspectorState extends React.Component {
       }
       if (message.type === "external-executed") {
         this.setState({
-          externalsList: [...this.state.externalsList, message.data]
+          externalsList: [message.data, ...this.state.externalsList]
         });
       }
       if (message.type === "external-blocked") {
         this.setState({
           blockedExternalsList: [
-            ...this.state.blockedExternalsList,
-            message.data
+            message.data,
+            ...this.state.blockedExternalsList
           ]
         });
       }
@@ -153,12 +153,20 @@ class MessageBroker extends React.Component {
           ? undefined
           : filtered[filtered.length - 1].payload;
 
-      this.postFromInspector("invoke-transition", {
-        state: toStateName,
-        payload:
+      let payloadInput;
+
+      try {
+        payloadInput =
           JSON.parse(
             prompt("Input the payload: ", JSON.stringify(defaultPayload))
-          ) || undefined
+          ) || undefined;
+      } catch (e) {
+        payloadInput = undefined;
+      }
+
+      this.postFromInspector("invoke-transition", {
+        state: toStateName,
+        payload: payloadInput
       });
     } else {
       this.postFromInspector("invoke-transition", {
@@ -318,6 +326,29 @@ class Inspector extends React.Component {
             .pointer { cursor: pointer; }
             .state-name.active { background-color: #fffa18; font-weight: bold; }
             .state-name { cursor: pointer; padding: 1px 3px; background-color: #ddd; border-radius: 2px; margin-right: 3px }
+
+            @keyframes flash-in-red {
+              0% {color: red;}
+              70% {color: red;}
+              100% {color: inherit;}
+            }
+
+            @keyframes flash-in-green {
+              0% {color: #06b506;}
+              70% {color: #06b506;}
+              100% {color: inherit;}
+            }
+
+            .flash-in-red {
+              animation-name: flash-in-red;
+              animation-duration: 4s;          
+            }
+
+            .flash-in-green {
+              animation-name: flash-in-green;
+              animation-duration: 4s;          
+            }
+          
             `}</style>
           }
         >
@@ -394,17 +425,33 @@ class Inspector extends React.Component {
                             Clear
                           </span>
                         </h3>
-                        <div style={{ display: "flex" }}>
+                        <div
+                          style={{
+                            display: "flex",
+                            height: 100,
+                            overflowY: "scroll"
+                          }}
+                        >
                           <div style={{ flex: 1 }}>
                             <h4 style={{ margin: "3px 0 5px" }}>Executed</h4>
                             {externalsList.map((external, idx) => (
-                              <div key={idx}>{external.externalName}</div>
+                              <div
+                                key={externalsList.length - idx}
+                                className="flash-in-green"
+                              >
+                                {external.externalName}
+                              </div>
                             ))}
                           </div>
                           <div style={{ flex: 1 }}>
                             <h4 style={{ margin: "3px 0 5px" }}>Blocked</h4>
                             {blockedExternalsList.map((external, idx) => (
-                              <div key={idx}>{external.externalName}</div>
+                              <div
+                                key={blockedExternalsList.length - idx}
+                                className="flash-in"
+                              >
+                                {external.externalName}
+                              </div>
                             ))}
                           </div>
                         </div>
@@ -471,7 +518,7 @@ class Inspector extends React.Component {
                                         </span>
                                       </span>
                                     ))}
-                                  {appState[domain].data && (
+                                  {typeof appState[domain].data === "object" ? (
                                     <div style={{ marginBottom: 10 }}>
                                       <ReactJson
                                         name={false}
@@ -481,6 +528,16 @@ class Inspector extends React.Component {
                                         enableClipboard={false}
                                       />
                                     </div>
+                                  ) : (
+                                    <code
+                                      style={{
+                                        display: "block",
+                                        marginTop: 6,
+                                        marginBottom: 10
+                                      }}
+                                    >
+                                      {JSON.stringify(appState[domain].data)}
+                                    </code>
                                   )}
                                   {/* <code>
                                     {JSON.stringify(appState[domain].data)}

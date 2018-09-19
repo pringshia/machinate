@@ -2,6 +2,25 @@ import { Component } from "react";
 import PropTypes from "prop-types";
 
 class External extends Component {
+  // componentDidMount() {
+  //   this.context.machine.addListener(
+  //     "blacklist-set",
+  //     this.handleExternalsChanged
+  //   );
+  // }
+
+  // componentWillUnmount() {
+  //   this.context.machine.removeListener(
+  //     "blacklist-set",
+  //     this.handleExternalsChanged
+  //   );
+  // }
+
+  // handleExternalsChanged = () => {
+  //   console.log("here");
+  //   this.forceUpdate();
+  // };
+
   // TODO: Component needs to re-render if external is updated.
   render() {
     const { emitter, getBlacklist } = this.context.machine;

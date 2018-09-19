@@ -344,7 +344,16 @@ class Inspector extends React.Component {
                   hasHadAPayloadHistorically
                 }) => (
                   <div>
-                    <h1 style={{ marginTop: "0px" }}>
+                    <h1
+                      style={{
+                        marginTop: "0px",
+                        backgroundColor: blacklist.some(
+                          b => b === GLOBAL_REGEX_BLACKLIST
+                        )
+                          ? "pink"
+                          : "inherit"
+                      }}
+                    >
                       <span role="img" aria-label="inspector logo">
                         🔍
                       </span>{" "}
@@ -400,7 +409,7 @@ class Inspector extends React.Component {
                           </div>
                         </div>
                       </div>
-                      <h3>BLACKLISTED EXTERNALS</h3>
+                      <h3>BLOCKED</h3>
                       <div className="module">
                         {blacklist.map((regex, idx) => (
                           <div

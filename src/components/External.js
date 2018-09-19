@@ -4,14 +4,26 @@ import PropTypes from "prop-types";
 class External extends Component {
   // TODO: Component needs to re-render if external is updated.
   render() {
-    return (
-      (this.props.checkBlacklisted(this.props.name)
-        ? this.props.fallback && {
-            ...this.props.fallback,
-            key: this.props.fallback.key || this.context.lastForceTime
-          }
-        : this.props.children) || null
-    );
+    const { emitter, getBlacklist } = this.context.machine;
+    const { name } = this.props;
+
+    if (this.props.checkBlacklisted(name)) {
+      emitter.emit("external-blocked", {
+        externalName: name,
+        blockedBy: getBlacklist().filter(regex => !!name.match(regex))
+      });
+
+      return (
+        (this.props.fallback && {
+          ...this.props.fallback,
+          key: this.props.fallback.key || this.context.lastForceTime
+        }) ||
+        null
+      );
+    } else {
+      emitter.emit("external-executed", { externalName: name });
+      return this.props.children || null;
+    }
   }
 }
 

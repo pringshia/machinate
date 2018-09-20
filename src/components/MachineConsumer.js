@@ -13,6 +13,7 @@ class MachineConsumer extends Component {
 
     const External = ({ ...props }) => (
       <ExternalComp
+        key={props.doNotRefresh ? undefined : context.machine.lastForceTime()}
         checkBlacklisted={context.machine.isTriggerBlacklisted}
         {...props}
       />

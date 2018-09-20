@@ -109,7 +109,7 @@ const createMachine = function(schema, state) {
         "to",
         toName,
         "with payload",
-        payload,
+        JSON.stringify(payload),
         "and dependents",
         depGraph.getDependents(state, fromName).map(n => n.f),
         depGraph.getDependents(state, toName).map(n => n.f)
@@ -164,6 +164,13 @@ const createMachine = function(schema, state) {
     optimizedDomainsToAdd.forEach(toAdd => {
       // console.log("triggering " + toAdd.domain + "." + toAdd.state);
       // ponder: we are recursing before updating the state below, is that ok?
+
+      // TODO: study implications of recently adding the following:
+      // if (state[toAdd.domain] !== undefined) {
+      //   return;
+      // }
+      //
+
       emitter.emit("triggered-add", { ...toAdd });
       _transition(prefixArray, toAdd.domain, toAdd.state, undefined, true);
     });
@@ -303,7 +310,7 @@ const createMachine = function(schema, state) {
 
   let blacklist = [];
   const isTriggerBlacklisted = name =>
-    blacklist.some(regex => !!name.match(regex));
+    name && blacklist.some(regex => !!name.match(regex));
 
   const shouldExecuteScoped = (isActive, transient) => {
     return !transient || isActive();

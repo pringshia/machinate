@@ -316,9 +316,12 @@ class Inspector extends React.Component {
             * { box-sizing: border-box; }
             html, body {margin:0; padding: 0; font-family: Arial, serif; }
             body { background-color: #efefef; color: #3f3f3f; border-left: 1px solid #aaaaaa; border-right: 1px solid #aaaaaa; min-height: 100vh; }
-            .container { padding: 20px 15px; font-size: 12px; }
+            .container { padding: 50px 15px 20px; font-size: 12px; }
             html { height: 100vh; }
-            h1 { font-size: 14px; margin: 0; padding: 10px 15px; background-color: #d0d0d0; color: #333; border-bottom: 1px solid #777; }
+            h1 { font-size: 14px; margin: 0; padding: 10px 15px;
+              background-color: #d0d0d0; color: #333; border-bottom: 1px solid #777;
+              position: fixed; left: 0; right: 0;
+            }
             h1, h3 { text-transform: uppercase; font-size: 11px; letter-spacing: 1px; }
             h3 { margin: 0 0 5px 0; padding: 0 0 4px 0; border-bottom: 1px solid #d0d0d0; }
             .module { margin-bottom: 30px; }
@@ -382,23 +385,36 @@ class Inspector extends React.Component {
                           b => b === GLOBAL_REGEX_BLACKLIST
                         )
                           ? "pink"
-                          : "inherit"
+                          : undefined
                       }}
                     >
                       <span role="img" aria-label="inspector logo">
                         🔍
                       </span>{" "}
-                      Inspector -{" "}
-                      <span onClick={this.toggleSide}>Toggle side</span>
+                      Inspector{" "}
+                      <span
+                        onClick={this.toggleSide}
+                        style={{
+                          cursor: "pointer",
+                          fontSize: 17,
+                          position: "absolute",
+                          bottom: 5,
+                          right: 10
+                        }}
+                        role="img"
+                        aria-label="toggle side"
+                      >
+                        🔛
+                      </span>
                       {blacklist.some(b => b === GLOBAL_REGEX_BLACKLIST) && (
                         <span
                           role="img"
                           aria-label="play button"
                           style={{
-                            float: "right",
                             fontSize: 17,
-                            position: "relative",
+                            position: "absolute",
                             bottom: 5,
+                            right: 35,
                             cursor: "pointer"
                           }}
                           onClick={removeFromBlacklist(
@@ -448,7 +464,7 @@ class Inspector extends React.Component {
                             {blockedExternalsList.map((external, idx) => (
                               <div
                                 key={blockedExternalsList.length - idx}
-                                className="flash-in"
+                                className="flash-in-red"
                               >
                                 {external.externalName}
                               </div>

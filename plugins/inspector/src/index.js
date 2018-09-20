@@ -127,6 +127,19 @@ class MessageBroker extends React.Component {
     );
   };
 
+  addToBlacklist = (blacklist, addedName) => {
+    this.postFromInspector("set-blacklist", [...blacklist, addedName]);
+  };
+
+  addTrigger = (blacklist, externalName, triggerState, triggerPayload) => {
+    this.addToBlacklist(blacklist, externalName);
+    this.postFromInspector("set-trigger", {
+      externalName,
+      triggerState,
+      triggerPayload
+    });
+  };
+
   hasHadAPayloadHistorically = (domainName, stateName, transitionsList) => {
     const toStateName = domainName + "." + stateName;
     const filtered = transitionsList.filter(
@@ -194,6 +207,8 @@ class MessageBroker extends React.Component {
         this.props.children({
           post: this.postFromInspector,
           forceStateChange: this.forceStateChange,
+          addToBlacklist: this.addToBlacklist,
+          addTrigger: this.addTrigger,
           removeFromBlacklist: this.removeFromBlacklist,
           transitionTo: this.transitionTo,
           hasHadAPayloadHistorically: this.hasHadAPayloadHistorically
@@ -209,7 +224,7 @@ MessageBroker.contextTypes = {
 
 class Inspector extends React.Component {
   instrument = INSTRUMENT;
-  state = { leftSide: false };
+  state = { leftSide: false, triggers: [] };
   postToInspector = (type, data) => {
     const frame = ReactDOM.findDOMNode(this.iframe);
     frame.contentWindow.postMessage(
@@ -260,9 +275,15 @@ class Inspector extends React.Component {
       machine.addListener("blacklist-set", (type, data) =>
         this.postToInspector("blacklist-set", data)
       );
-      machine.addListener("external-blocked", (type, data) =>
-        this.postToInspector("external-blocked", data)
-      );
+      machine.addListener("external-blocked", (type, data) => {
+        this.postToInspector("external-blocked", data);
+        const triggers = this.state.triggers.filter(
+          t => !!data.externalName.match(t.externalName)
+        );
+        triggers.forEach(trigger => {
+          machine.transition([], trigger.triggerState, trigger.triggerPayload);
+        });
+      });
       machine.addListener("external-executed", (type, data) =>
         this.postToInspector("external-executed", data)
       );
@@ -283,6 +304,19 @@ class Inspector extends React.Component {
             machine.setState(e.data.data);
           } else if (e.data.type === "set-blacklist") {
             machine.setBlacklist(e.data.data);
+            const blacklistItems = e.data.data || [];
+            const removeTriggers = this.state.triggers
+              .filter(t => blacklistItems.indexOf(t.externalName) < 0)
+              .map(t => t.externalName);
+            if (removeTriggers.length > 0) {
+              this.setState({
+                triggers: this.state.triggers.filter(
+                  t => removeTriggers.indexOf(t.externalName) < 0
+                )
+              });
+            }
+          } else if (e.data.type === "set-trigger") {
+            this.setState({ triggers: [...this.state.triggers, e.data.data] });
           } else if (e.data.type === "invoke-transition") {
             machine.setBlacklist([GLOBAL_REGEX_BLACKLIST]);
             machine.transition([], e.data.data.state, e.data.data.payload);
@@ -374,6 +408,8 @@ class Inspector extends React.Component {
                   post,
                   forceStateChange,
                   removeFromBlacklist,
+                  addToBlacklist,
+                  addTrigger,
                   transitionTo,
                   hasHadAPayloadHistorically
                 }) => (
@@ -429,7 +465,7 @@ class Inspector extends React.Component {
                     <div className="container">
                       <div className="module">
                         <h3>
-                          EXTERNALS
+                          SIDE EFFECTS
                           <span
                             style={{
                               marginLeft: 10,
@@ -474,6 +510,37 @@ class Inspector extends React.Component {
                       </div>
                       <h3>BLOCKED</h3>
                       <div className="module">
+                        <button
+                          onClick={() => {
+                            const externalName = prompt(
+                              "Which side-effect would you like to block?"
+                            );
+                            addToBlacklist(blacklist, externalName);
+                            const shouldAddTrigger = window.confirm(
+                              "Would you like to replace it with a trigger?"
+                            );
+
+                            if (shouldAddTrigger) {
+                              const triggerState = prompt(
+                                "Which state would you like to transition to?"
+                              );
+                              const triggerPayloadString = prompt(
+                                "What would you like to use as the payload?"
+                              );
+                              const triggerPayload =
+                                triggerPayloadString &&
+                                JSON.parse(triggerPayloadString);
+                              addTrigger(
+                                blacklist,
+                                externalName,
+                                triggerState,
+                                triggerPayload
+                              );
+                            }
+                          }}
+                        >
+                          [BETA] Block a side-effect
+                        </button>
                         {blacklist.map((regex, idx) => (
                           <div
                             key={idx}

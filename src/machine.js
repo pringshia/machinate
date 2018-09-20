@@ -166,10 +166,9 @@ const createMachine = function(schema, state) {
       // ponder: we are recursing before updating the state below, is that ok?
 
       // TODO: study implications of recently adding the following:
-      // if (state[toAdd.domain] !== undefined) {
-      //   return;
-      // }
-      //
+      if (state[toAdd.domain] !== undefined) {
+        return;
+      }
 
       emitter.emit("triggered-add", { ...toAdd });
       _transition(prefixArray, toAdd.domain, toAdd.state, undefined, true);

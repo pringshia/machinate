@@ -12,8 +12,10 @@
     "prepublishOnly": "NODE_ENV=production webpack"
   },
   "dependencies": {
+    "classnames": "^2.2.6",
     "prop-types": "^15.6.1",
-    "react-frame-component": "^2.0.2"
+    "react-frame-component": "^2.0.2",
+    "react-json-view": "^1.19.1"
   },
   "peerDependencies": {
     "machinate": "^1.0.12",

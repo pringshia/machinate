@@ -36,20 +36,20 @@ const createMachine = function(schema, state) {
     domainName ? schema[domainName] : schema;
 
   const getState = domainName => {
-    return JSON.parse(
-      JSON.stringify(domainName ? state[domainName] || null : state)
-    );
+    return clone(domainName ? state[domainName] || null : state);
   };
+
+  const clone = val => JSON.parse(JSON.stringify(val));
 
   const _setState = nextState => {
     state = nextState;
     emitter.emit("set-state", { state });
   };
 
-  const setState = nextState => {
+  const setState = (nextState, forcedBy = undefined) => {
     state = nextState;
     lastForceTime = new Date();
-    emitter.emit("force-state", { state });
+    emitter.emit("force-state", { state, forcedBy });
   };
 
   const _transition = (
@@ -109,7 +109,7 @@ const createMachine = function(schema, state) {
         "to",
         toName,
         "with payload",
-        payload,
+        JSON.stringify(payload),
         "and dependents",
         depGraph.getDependents(state, fromName).map(n => n.f),
         depGraph.getDependents(state, toName).map(n => n.f)
@@ -164,6 +164,12 @@ const createMachine = function(schema, state) {
     optimizedDomainsToAdd.forEach(toAdd => {
       // console.log("triggering " + toAdd.domain + "." + toAdd.state);
       // ponder: we are recursing before updating the state below, is that ok?
+
+      // TODO: study implications of recently adding the following:
+      if (state[toAdd.domain] !== undefined) {
+        return;
+      }
+
       emitter.emit("triggered-add", { ...toAdd });
       _transition(prefixArray, toAdd.domain, toAdd.state, undefined, true);
     });
@@ -235,6 +241,15 @@ const createMachine = function(schema, state) {
     }
   };
 
+  const query = (scope, notation) => {
+    const [domainName] = notation.split(".");
+    const stateInfo = getState(
+      resolveSubdomain(state, scope, domainName).fullName
+    );
+
+    return stateInfo.data;
+  };
+
   const _registerComponentForUpdates = ref => {
     components.push(ref);
   };
@@ -294,7 +309,7 @@ const createMachine = function(schema, state) {
 
   let blacklist = [];
   const isTriggerBlacklisted = name =>
-    blacklist.some(regex => !!name.match(regex));
+    name && blacklist.some(regex => !!name.match(regex));
 
   const shouldExecuteScoped = (isActive, transient) => {
     return !transient || isActive();
@@ -315,6 +330,9 @@ const createMachine = function(schema, state) {
     transition,
     go,
     update,
+    query,
+
+    emitter,
 
     scoped: (scope, isActive = () => true, transient = true) => ({
       transition: (...args) =>
@@ -322,7 +340,9 @@ const createMachine = function(schema, state) {
       go: (...args) =>
         shouldExecuteScoped(isActive, transient) && go(scope, ...args),
       update: (...args) =>
-        shouldExecuteScoped(isActive, transient) && update(scope, ...args)
+        shouldExecuteScoped(isActive, transient) && update(scope, ...args),
+      query: (...args) =>
+        shouldExecuteScoped(isActive, transient) && query(scope, ...args)
     }),
 
     external: fnArgs =>
@@ -336,11 +356,23 @@ const createMachine = function(schema, state) {
           isFunction(fallback),
           `The fallback provided to the external '${name}' must be a function. You may have accidentally triggered the fallback.`
         );
-        return isTriggerBlacklisted(name) ? fallback(fnArgs) : promise(fnArgs);
+        if (isTriggerBlacklisted(name)) {
+          emitter.emit("external-blocked", {
+            externalName: name,
+            blockedBy: blacklist.filter(regex => !!name.match(regex))
+          });
+          return fallback(fnArgs);
+        } else {
+          emitter.emit("external-executed", { externalName: name });
+          return promise(fnArgs);
+        }
+        // return isTriggerBlacklisted(name) ? fallback(fnArgs) : promise(fnArgs);
       },
     setBlacklist: newBlacklist => {
       blacklist = newBlacklist;
-      setState(getState());
+      emitter.emit("blacklist-set", newBlacklist);
+      lastForceTime = new Date();
+      components.forEach(comp => comp.forceUpdate());
     },
     getBlacklist: () => blacklist,
     isTriggerBlacklisted,

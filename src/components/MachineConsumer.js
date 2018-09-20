@@ -13,12 +13,19 @@ class MachineConsumer extends Component {
 
     const External = ({ ...props }) => (
       <ExternalComp
+        key={props.doNotRefresh ? undefined : context.machine.lastForceTime()}
         checkBlacklisted={context.machine.isTriggerBlacklisted}
         {...props}
       />
     );
 
-    this.machineProps = { ...this.persistentMethods, Transition, External };
+    this.machineProps = {
+      ...this.persistentMethods,
+      Transition,
+      External,
+      external: context.machine.external(context.scope),
+      lastForceTime: context.machine.lastForceTime
+    };
   }
   render() {
     return this.props.children({ ...this.machineProps });

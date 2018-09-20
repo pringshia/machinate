@@ -23,6 +23,7 @@ class State extends Component {
 
     this.External = ({ ...props }) => (
       <External
+        key={props.doNotRefresh ? undefined : context.machine.lastForceTime()}
         checkBlacklisted={context.machine.isTriggerBlacklisted}
         {...props}
       />
@@ -39,7 +40,9 @@ class State extends Component {
     this.isUnmounted = true;
   }
   getActiveState = () => {
-    const { machine: { getState } } = this.context;
+    const {
+      machine: { getState }
+    } = this.context;
     const fullName = this.props.of; // maybe pass through helpers/resolveSubDomain here
     const [resolvedDomainName, stateName] = fullName.split(".");
     const stateInfo = getState(resolvedDomainName);
@@ -50,7 +53,9 @@ class State extends Component {
     return stateInfo;
   };
   render() {
-    const { machine: { external } } = this.context;
+    const {
+      machine: { external }
+    } = this.context;
     const ifInactive =
       (this.props.ifInactive && this.props.ifInactive()) || null;
 
@@ -65,7 +70,10 @@ class State extends Component {
           ...this.persistentMethods
         },
 
-        external: external(this.scoped),
+        external: (...args) => {
+          this.context.machine._registerComponentForUpdates(this);
+          return external(this.scoped)(...args);
+        },
 
         Transition: this.Transition,
         External: this.External
